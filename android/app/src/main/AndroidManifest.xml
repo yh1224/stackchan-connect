@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.stackchan_connect">
+    package="com.yh1224.android.stackchan_connect">
    <application
-        android:label="stackchan_connect"
+        android:label="ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
