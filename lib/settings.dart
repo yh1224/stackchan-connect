@@ -70,33 +70,35 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Text("ｽﾀｯｸﾁｬﾝの IP アドレスを入力してください"),
-            TextField(
-              autofocus: true,
-              controller: stackchanIpAddressTextArea,
-              style: const TextStyle(fontSize: 20),
-              onChanged: (String value) {
-                saveSettings();
-              },
-            ),
-            ValueListenableBuilder(
-              valueListenable: stackchanIpAddressTextArea,
-              builder: (context, value, child) {
-                return ElevatedButton(
-                  onPressed: stackchanIpAddressTextArea.text.isEmpty || isLoading ? null : test,
-                  child: const Text(
-                    'Test',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                );
-              },
-            ),
-            Text(errorMessage),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              const Text("ｽﾀｯｸﾁｬﾝの IP アドレスを入力してください"),
+              TextField(
+                autofocus: true,
+                controller: stackchanIpAddressTextArea,
+                style: const TextStyle(fontSize: 20),
+                onChanged: (String value) {
+                  saveSettings();
+                },
+              ),
+              ValueListenableBuilder(
+                valueListenable: stackchanIpAddressTextArea,
+                builder: (context, value, child) {
+                  return ElevatedButton(
+                    onPressed: stackchanIpAddressTextArea.text.isEmpty || isLoading ? null : test,
+                    child: const Text(
+                      'Test',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  );
+                },
+              ),
+              Text(errorMessage),
+            ],
+          ),
         ),
       ),
     );

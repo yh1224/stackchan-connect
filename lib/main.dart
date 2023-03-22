@@ -35,39 +35,44 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
       ),
-      body: Column(
-        children: [
-          Center(
-            child: TextButton(
-              onPressed: () => {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                  return const SpeechPage("ｽﾀｯｸﾁｬﾝ にしゃべってもらいたいことを入力してね", "/speech", "say");
-                }))
-              },
-              child: const Text("しゃべって", style: TextStyle(fontSize: 40)),
-            ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              Center(
+                child: TextButton(
+                  onPressed: () => {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                      return const SpeechPage("ｽﾀｯｸﾁｬﾝ にしゃべってもらいたいことを入力してね", "/speech", "say");
+                    }))
+                  },
+                  child: const Text("しゃべって", style: TextStyle(fontSize: 40)),
+                ),
+              ),
+              Center(
+                child: TextButton(
+                  onPressed: () => {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                      return const SpeechPage("ｽﾀｯｸﾁｬﾝ に聞きたいことを入力してね", "/chat", "text");
+                    }))
+                  },
+                  child: const Text("おはなし", style: TextStyle(fontSize: 40)),
+                ),
+              ),
+              Center(
+                child: TextButton(
+                  onPressed: () => {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                      return const SettingsPage();
+                    }))
+                  },
+                  child: const Text("設定", style: TextStyle(fontSize: 40)),
+                ),
+              ),
+            ],
           ),
-          Center(
-            child: TextButton(
-              onPressed: () => {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                  return const SpeechPage("ｽﾀｯｸﾁｬﾝ に聞きたいことを入力してね", "/chat", "text");
-                }))
-              },
-              child: const Text("おはなし", style: TextStyle(fontSize: 40)),
-            ),
-          ),
-          Center(
-            child: TextButton(
-              onPressed: () => {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                  return const SettingsPage();
-                }))
-              },
-              child: const Text("設定", style: TextStyle(fontSize: 40)),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

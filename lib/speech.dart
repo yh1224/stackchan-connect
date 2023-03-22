@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +20,7 @@ class SpeechPage extends StatefulWidget {
 
 class _SpeechPageState extends State<SpeechPage> {
   final textArea = TextEditingController();
+  final List<String> result = [];
   String sttStatus = '';
   bool isListening = false;
   bool isLoading = false;
@@ -74,8 +77,12 @@ class _SpeechPageState extends State<SpeechPage> {
   void statusListener(String status) {
     if (status == 'done') {
       setState(() {
-        sttStatus = status;
+        sttStatus = '';
         isListening = false;
+      });
+    } else {
+      setState(() {
+        sttStatus = status;
       });
     }
   }
@@ -84,15 +91,35 @@ class _SpeechPageState extends State<SpeechPage> {
   void callStackchan() async {
     var prefs = await SharedPreferences.getInstance();
     try {
-      setState(() {
-        isLoading = true;
-      });
       var stackchanIpAddress = prefs.getString('stackchanIpAddress');
-      if (stackchanIpAddress != null) {
-        await http.post(Uri.http(stackchanIpAddress, widget.apiPath), body: {
-          widget.parameterKey: textArea.text,
+      if (stackchanIpAddress != null && stackchanIpAddress.isNotEmpty) {
+        setState(() {
+          isLoading = true;
         });
+        var message = textArea.text;
+        textArea.text = '';
+        result.add('> $message');
+        var res = await http.post(Uri.http(stackchanIpAddress, widget.apiPath), body: {
+          widget.parameterKey: message,
+        });
+        if (res.statusCode != 200) {
+          setState(() {
+            result.add('Error: ${res.statusCode}');
+          });
+        }
+        var body = utf8.decode(res.bodyBytes);
+        var si = body.indexOf("<body>");
+        var ei = body.indexOf("</body>");
+        if (si >= 0 && ei >= 0) {
+          result.add(body.substring(si + 6, ei));
+        }
+      } else {
+        result.add('ｽﾀｯｸﾁｬﾝ の IP アドレスが設定されていません');
       }
+    } catch (e) {
+      setState(() {
+        result.add('Error: ${e.toString()}');
+      });
     } finally {
       setState(() {
         isLoading = false;
@@ -113,57 +140,63 @@ class _SpeechPageState extends State<SpeechPage> {
       appBar: AppBar(
         title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Text(widget.message),
-            TextField(
-              autofocus: true,
-              controller: textArea,
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
-              style: const TextStyle(fontSize: 20),
-            ),
-            Row(
-              children: [
-                ValueListenableBuilder(
-                  valueListenable: textArea,
-                  builder: (context, value, child) {
-                    return ElevatedButton(
-                      onPressed: textArea.text.isEmpty || isListening || isLoading ? null : callStackchan,
-                      child: const Text(
-                        'OK',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                    );
-                  },
-                ),
-                const Spacer(),
-                ValueListenableBuilder(
-                    valueListenable: textArea,
-                    builder: (context, value, child) {
-                      return ElevatedButton(
-                        onPressed: textArea.text.isEmpty || isListening || isLoading ? null : clear,
-                        child: const Text(
-                          'Clear',
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      );
-                    }),
-              ],
-            ),
-            const Spacer(),
-            Text(sttStatus, style: const TextStyle(fontSize: 40)),
-          ],
-        ),
-      ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      body: Column(
         children: [
-          FloatingActionButton(
-            onPressed: isListening ? stopListening : startListening,
-            child: isListening ? const Icon(Icons.stop) : const Icon(Icons.record_voice_over_rounded),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Text(widget.message),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.all(8.0),
+                      children: result.map((r) => Text(r, style: const TextStyle(fontSize: 16))).toList(),
+                    ),
+                  ),
+                  Text(sttStatus),
+                ],
+              ),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: TextField(
+                        autofocus: true,
+                        controller: textArea,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
+                    ValueListenableBuilder(
+                      valueListenable: textArea,
+                      builder: (context, value, child) {
+                        return IconButton(
+                          color: Colors.blue,
+                          icon: textArea.text.isEmpty
+                              ? (isListening ? const Icon(Icons.stop) : const Icon(Icons.mic))
+                              : const Icon(Icons.send),
+                          onPressed: isLoading
+                              ? null
+                              : (textArea.text.isEmpty
+                                  ? isListening
+                                      ? stopListening
+                                      : startListening
+                                  : callStackchan),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
