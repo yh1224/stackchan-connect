@@ -31,9 +31,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This permission is required to input message using speech recognition.</string>
+	<string>音声による入力をおこなうために使用します。</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This permission is required to input message using speech recognition.</string>
+	<string>音声による入力をおこなうために使用します。</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
