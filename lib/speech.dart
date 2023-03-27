@@ -34,6 +34,12 @@ class _SpeechPageState extends State<SpeechPage> {
 
   // 音声入力開始
   Future<void> startListening() async {
+    // Unfocus
+    final FocusScopeNode currentScope = FocusScope.of(context);
+    if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
+      FocusManager.instance.primaryFocus!.unfocus();
+    }
+
     bool available = await speech.initialize(
       onError: errorListener,
       onStatus: statusListener,
@@ -51,7 +57,7 @@ class _SpeechPageState extends State<SpeechPage> {
 
   // 音声入力停止
   Future<void> stopListening() async {
-    speech.stop();
+    await speech.stop();
     setState(() {
       isListening = false;
     });
@@ -59,14 +65,21 @@ class _SpeechPageState extends State<SpeechPage> {
 
   // 音声入力結果
   void resultListener(SpeechRecognitionResult result) {
-    setState(() {
-      textArea.text = result.recognizedWords;
-      sttStatus = '';
-    });
+    debugPrint('resultListener: ${jsonEncode(result)}');
+    if (isListening) {
+      setState(() {
+        textArea.text = result.recognizedWords;
+        sttStatus = '';
+        if (result.finalResult) {
+          isListening = false;
+        }
+      });
+    }
   }
 
   // 音声入力エラー
   void errorListener(SpeechRecognitionError error) {
+    debugPrint('errorListener: ${jsonEncode(error)}');
     setState(() {
       sttStatus = '${error.errorMsg} - ${error.permanent}';
       isListening = false;
@@ -75,29 +88,28 @@ class _SpeechPageState extends State<SpeechPage> {
 
   // 音声入力状態
   void statusListener(String status) {
-    if (status == 'done') {
-      setState(() {
+    debugPrint('statusListener: $status');
+    setState(() {
+      if (status == 'done') {
         sttStatus = '';
-        isListening = false;
-      });
-    } else {
-      setState(() {
+      } else {
         sttStatus = status;
-      });
-    }
+      }
+    });
   }
 
   // ｽﾀｯｸﾁｬﾝ API を呼ぶ
   void callStackchan() async {
+    await stopListening();
     var prefs = await SharedPreferences.getInstance();
     try {
       var stackchanIpAddress = prefs.getString('stackchanIpAddress');
       if (stackchanIpAddress != null && stackchanIpAddress.isNotEmpty) {
+        final message = textArea.text;
         setState(() {
+          textArea.clear();
           isLoading = true;
         });
-        var message = textArea.text;
-        textArea.text = '';
         result.add('> $message');
         var res = await http.post(Uri.http(stackchanIpAddress, widget.apiPath), body: {
           widget.parameterKey: message,
@@ -171,12 +183,18 @@ class _SpeechPageState extends State<SpeechPage> {
                 child: Row(
                   children: [
                     Flexible(
-                      child: TextField(
-                        autofocus: true,
-                        controller: textArea,
-                        keyboardType: TextInputType.multiline,
-                        maxLines: null,
-                        style: const TextStyle(fontSize: 20),
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            stopListening();
+                          }
+                        },
+                        child: TextField(
+                          controller: textArea,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          style: const TextStyle(fontSize: 20),
+                        ),
                       ),
                     ),
                     ValueListenableBuilder(
