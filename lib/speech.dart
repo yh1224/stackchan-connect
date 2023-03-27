@@ -136,6 +136,10 @@ class _SpeechPageState extends State<SpeechPage> {
 
   @override
   Widget build(BuildContext context) {
+    textArea.selection = TextSelection.fromPosition(
+      TextPosition(offset: textArea.text.length),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
