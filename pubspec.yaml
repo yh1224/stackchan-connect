@@ -39,6 +39,7 @@ dependencies:
   speech_to_text: ^6.1.1
   shared_preferences: ^2.0.18
   http: ^0.13.5
+  url_launcher: ^6.1.10
 
 dev_dependencies:
   flutter_test:
