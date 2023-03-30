@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/link.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -14,6 +15,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   String errorMessage = '';
   bool isLoading = false;
+  String? apiKeySettingUrl;
 
   @override
   void initState() {
@@ -39,8 +41,20 @@ class _SettingsPageState extends State<SettingsPage> {
       try {
         setState(() {
           errorMessage = 'Connecting...';
+          apiKeySettingUrl = null;
           isLoading = true;
         });
+
+        // check existence of apikey setting page
+        bool hasApiKeySetting = false;
+        try {
+          var res = await http.get(Uri.http(stackchanIpAddress, "/apikey"));
+          hasApiKeySetting = res.statusCode == 200;
+        } catch (e) {
+          debugPrint(e.toString());
+        }
+
+        // try speech API
         var res = await http.post(Uri.http(stackchanIpAddress, "/speech"), body: {
           "say": "接続できました",
         });
@@ -49,7 +63,9 @@ class _SettingsPageState extends State<SettingsPage> {
             errorMessage = 'Error: ${res.statusCode}';
           });
         }
+
         setState(() {
+          apiKeySettingUrl = hasApiKeySetting ? "http://$stackchanIpAddress/apikey" : null;
           errorMessage = 'OK';
         });
       } catch (e) {
@@ -97,6 +113,18 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
               ),
               Text(errorMessage),
+              Visibility(
+                visible: apiKeySettingUrl != null,
+                child: Link(
+                  uri: apiKeySettingUrl != null ? Uri.parse(apiKeySettingUrl!) : null,
+                  builder: (BuildContext context, FollowLink? openLink) {
+                    return TextButton(
+                      onPressed: openLink,
+                      child: const Text("API Key 設定"),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
