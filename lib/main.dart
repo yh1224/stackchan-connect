@@ -89,17 +89,7 @@ class MyHomePage extends StatelessWidget {
                 child: TextButton(
                   onPressed: () => {
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                      return const SpeechPage("ｽﾀｯｸﾁｬﾝ にしゃべってもらいたいことを入力してね", "/speech", "say");
-                    }))
-                  },
-                  child: const Text("しゃべって", style: TextStyle(fontSize: 40)),
-                ),
-              ),
-              Center(
-                child: TextButton(
-                  onPressed: () => {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                      return const SpeechPage("ｽﾀｯｸﾁｬﾝ に聞きたいことを入力してね", "/chat", "text");
+                      return const SpeechPage();
                     }))
                   },
                   child: const Text("おはなし", style: TextStyle(fontSize: 40)),

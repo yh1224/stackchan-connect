@@ -2,17 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class SpeechPage extends StatefulWidget {
-  const SpeechPage(this.message, this.apiPath, this.parameterKey, {super.key});
-
-  final String message;
-  final String apiPath;
-  final String parameterKey;
+  const SpeechPage({super.key});
 
   @override
   State<SpeechPage> createState() => _SpeechPageState();
@@ -22,6 +19,7 @@ class _SpeechPageState extends State<SpeechPage> {
   final textArea = TextEditingController();
   final List<String> result = [];
   String sttStatus = '';
+  String mode = 'chat';
   bool isListening = false;
   bool isLoading = false;
   final stt.SpeechToText speech = stt.SpeechToText();
@@ -111,9 +109,13 @@ class _SpeechPageState extends State<SpeechPage> {
           isLoading = true;
         });
         result.add('> $message');
-        var res = await http.post(Uri.http(stackchanIpAddress, widget.apiPath), body: {
-          widget.parameterKey: message,
-        });
+        Response res;
+        if (mode == 'chat') {
+          res = await http.post(Uri.http(stackchanIpAddress, '/chat'), body: {'text': message});
+        } else {
+          // echo
+          res = await http.post(Uri.http(stackchanIpAddress, '/speech'), body: {'say': message});
+        }
         if (res.statusCode != 200) {
           setState(() {
             result.add('Error: ${res.statusCode}');
@@ -163,7 +165,6 @@ class _SpeechPageState extends State<SpeechPage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
-                  Text(widget.message),
                   Expanded(
                     child: ListView(
                       padding: const EdgeInsets.all(8.0),
@@ -178,6 +179,26 @@ class _SpeechPageState extends State<SpeechPage> {
           Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              DropdownButton(
+                items: const [
+                  DropdownMenuItem(
+                    value: 'speech',
+                    child: Text("しゃべって"),
+                  ),
+                  DropdownMenuItem(
+                    value: 'chat',
+                    child: Text("会話する"),
+                  ),
+                ],
+                onChanged: (String? value) {
+                  setState(() {
+                    if (value != null) {
+                      mode = value;
+                    }
+                  });
+                },
+                value: mode,
+              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
