@@ -158,90 +158,94 @@ class _SpeechPageState extends State<SpeechPage> {
       appBar: AppBar(
         title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.all(8.0),
-                      children: result.map((r) => Text(r, style: const TextStyle(fontSize: 16))).toList(),
-                    ),
-                  ),
-                  Text(sttStatus),
-                ],
-              ),
-            ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              DropdownButton(
-                items: const [
-                  DropdownMenuItem(
-                    value: 'speech',
-                    child: Text("しゃべって"),
-                  ),
-                  DropdownMenuItem(
-                    value: 'chat',
-                    child: Text("会話する"),
-                  ),
-                ],
-                onChanged: (String? value) {
-                  setState(() {
-                    if (value != null) {
-                      mode = value;
-                    }
-                  });
-                },
-                value: mode,
-              ),
-              Padding(
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Row(
+                child: Column(
                   children: [
-                    Flexible(
-                      child: Focus(
-                        onFocusChange: (hasFocus) {
-                          if (hasFocus) {
-                            stopListening();
-                          }
-                        },
-                        child: TextField(
-                          controller: textArea,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          style: const TextStyle(fontSize: 20),
-                        ),
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.all(8.0),
+                        children: result.map((r) => Text(r, style: const TextStyle(fontSize: 16))).toList(),
                       ),
                     ),
-                    ValueListenableBuilder(
-                      valueListenable: textArea,
-                      builder: (context, value, child) {
-                        return IconButton(
-                          color: Colors.blue,
-                          icon: textArea.text.isEmpty
-                              ? (isListening ? const Icon(Icons.stop) : const Icon(Icons.mic))
-                              : const Icon(Icons.send),
-                          onPressed: isLoading
-                              ? null
-                              : (textArea.text.isEmpty
-                                  ? isListening
-                                      ? stopListening
-                                      : startListening
-                                  : callStackchan),
-                        );
-                      },
-                    ),
+                    Text(sttStatus),
                   ],
                 ),
               ),
-            ],
-          ),
-        ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                DropdownButton(
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'speech',
+                      child: Text("しゃべって"),
+                    ),
+                    DropdownMenuItem(
+                      value: 'chat',
+                      child: Text("会話する"),
+                    ),
+                  ],
+                  onChanged: (String? value) {
+                    setState(() {
+                      if (value != null) {
+                        mode = value;
+                      }
+                    });
+                  },
+                  value: mode,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Focus(
+                          onFocusChange: (hasFocus) {
+                            if (hasFocus) {
+                              stopListening();
+                            }
+                          },
+                          child: TextField(
+                            controller: textArea,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                        ),
+                      ),
+                      ValueListenableBuilder(
+                        valueListenable: textArea,
+                        builder: (context, value, child) {
+                          return IconButton(
+                            color: Colors.blue,
+                            icon: textArea.text.isEmpty
+                                ? (isListening ? const Icon(Icons.stop) : const Icon(Icons.mic))
+                                : const Icon(Icons.send),
+                            onPressed: isLoading
+                                ? null
+                                : (textArea.text.isEmpty
+                                    ? isListening
+                                        ? stopListening
+                                        : startListening
+                                    : callStackchan),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
