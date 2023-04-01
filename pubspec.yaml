@@ -40,6 +40,7 @@ dependencies:
   shared_preferences: ^2.0.18
   http: ^0.13.5
   url_launcher: ^6.1.10
+  esp_smartconfig: ^1.1.11
 
 dev_dependencies:
   flutter_test:
