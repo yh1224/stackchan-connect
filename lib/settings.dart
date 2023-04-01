@@ -13,6 +13,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final stackchanIpAddressTextArea = TextEditingController();
 
+  String stackchanIpAddress = '';
   String errorMessage = '';
   bool isLoading = false;
   String? apiKeySettingUrl;
@@ -23,20 +24,29 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
   }
 
-  void saveSettings() async {
+  @override
+  void dispose() {
+    stackchanIpAddressTextArea.dispose();
+    super.dispose();
+  }
+
+  void setStackchanIpAddress(String value) async {
+    setState(() {
+      stackchanIpAddress = value;
+    });
     var prefs = await SharedPreferences.getInstance();
-    await prefs.setString('stackchanIpAddress', stackchanIpAddressTextArea.text);
+    await prefs.setString('stackchanIpAddress', stackchanIpAddress);
   }
 
   void restoreSettings() async {
     var prefs = await SharedPreferences.getInstance();
     setState(() {
-      stackchanIpAddressTextArea.text = prefs.getString('stackchanIpAddress') ?? '';
+      stackchanIpAddress = prefs.getString('stackchanIpAddress') ?? '';
     });
+    stackchanIpAddressTextArea.text = stackchanIpAddress;
   }
 
   void test() async {
-    var stackchanIpAddress = stackchanIpAddressTextArea.text;
     if (stackchanIpAddress.isNotEmpty) {
       try {
         setState(() {
@@ -88,8 +98,9 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(8),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text("ｽﾀｯｸﾁｬﾝの IP アドレスを入力してください"),
               TextField(
@@ -97,20 +108,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 controller: stackchanIpAddressTextArea,
                 style: const TextStyle(fontSize: 20),
                 onChanged: (String value) {
-                  saveSettings();
+                  setStackchanIpAddress(value);
                 },
               ),
-              ValueListenableBuilder(
-                valueListenable: stackchanIpAddressTextArea,
-                builder: (context, value, child) {
-                  return ElevatedButton(
-                    onPressed: stackchanIpAddressTextArea.text.isEmpty || isLoading ? null : test,
-                    child: const Text(
-                      'Test',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                  );
-                },
+              ElevatedButton(
+                onPressed: stackchanIpAddress.isEmpty || isLoading ? null : test,
+                child: const Text(
+                  'Test',
+                  style: TextStyle(fontSize: 20),
+                ),
               ),
               Text(errorMessage),
               Visibility(
