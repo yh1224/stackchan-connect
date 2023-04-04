@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/link.dart';
+
+import 'smart_config.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -90,6 +94,20 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  bool canSmartConfig() {
+    return Platform.isAndroid;
+  }
+
+  void startSmartConfig() async {
+    final result = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => const SmartConfigPage()));
+    debugPrint("SmartConfig result: $result");
+    if (result != null) {
+      setStackchanIpAddress(result);
+      stackchanIpAddressTextArea.text = result;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,7 +116,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -131,6 +149,22 @@ class _SettingsPageState extends State<SettingsPage> {
                   },
                 ),
               ),
+              Visibility(
+                visible: canSmartConfig() && stackchanIpAddress.isEmpty,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("M5Burner 版の AI ｽﾀｯｸﾁｬﾝ など SmartConfig に対応している場合、以下から自動設定できます。"),
+                    ElevatedButton(
+                      onPressed: startSmartConfig,
+                      child: const Text(
+                        'SmartConfig で設定する',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    ),
+                  ],
+                ),
+              )
             ],
           ),
         ),
