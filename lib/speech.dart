@@ -20,6 +20,7 @@ class _SpeechPageState extends State<SpeechPage> {
   final List<String> result = [];
   String sttStatus = '';
   String mode = 'chat';
+  String voice = '0';
   bool isListening = false;
   bool isLoading = false;
   final stt.SpeechToText speech = stt.SpeechToText();
@@ -111,10 +112,10 @@ class _SpeechPageState extends State<SpeechPage> {
         result.add('> $message');
         Response res;
         if (mode == 'chat') {
-          res = await http.post(Uri.http(stackchanIpAddress, '/chat'), body: {'text': message});
+          res = await http.post(Uri.http(stackchanIpAddress, '/chat'), body: {'text': message, 'voice': voice});
         } else {
           // echo
-          res = await http.post(Uri.http(stackchanIpAddress, '/speech'), body: {'say': message});
+          res = await http.post(Uri.http(stackchanIpAddress, '/speech'), body: {'say': message, 'voice': voice});
         }
         if (res.statusCode != 200) {
           setState(() {
@@ -180,27 +181,73 @@ class _SpeechPageState extends State<SpeechPage> {
               ),
             ),
             Column(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                DropdownButton(
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'speech',
-                      child: Text("しゃべって"),
-                    ),
-                    DropdownMenuItem(
-                      value: 'chat',
-                      child: Text("会話する"),
-                    ),
-                  ],
-                  onChanged: (String? value) {
-                    setState(() {
-                      if (value != null) {
-                        mode = value;
-                      }
-                    });
-                  },
-                  value: mode,
+                SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: DropdownButton(
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'speech',
+                                child: Text("しゃべって"),
+                              ),
+                              DropdownMenuItem(
+                                value: 'chat',
+                                child: Text("会話する"),
+                              ),
+                            ],
+                            onChanged: (String? value) {
+                              setState(() {
+                                if (value != null) {
+                                  mode = value;
+                                }
+                              });
+                            },
+                            value: mode,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: DropdownButton(
+                            items: const [
+                              DropdownMenuItem(
+                                value: '0',
+                                child: Text("声: 0"),
+                              ),
+                              DropdownMenuItem(
+                                value: '1',
+                                child: Text("声: 1"),
+                              ),
+                              DropdownMenuItem(
+                                value: '2',
+                                child: Text("声: 2"),
+                              ),
+                              DropdownMenuItem(
+                                value: '3',
+                                child: Text("声: 3"),
+                              ),
+                              DropdownMenuItem(
+                                value: '4',
+                                child: Text("声: 4"),
+                              ),
+                            ],
+                            onChanged: (String? value) {
+                              setState(() {
+                                if (value != null) {
+                                  voice = value;
+                                }
+                              });
+                            },
+                            value: voice,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
