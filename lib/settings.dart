@@ -59,10 +59,10 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text("API Key 設定", style: TextStyle(fontSize: 20)),
             onTap: openStackchanApiKeysSettings,
           ),
-          ListTile(
-            title: const Text("ロール設定", style: TextStyle(fontSize: 20)),
-            onTap: openStackchanRoleSettings,
-          ),
+          // ListTile(
+          //   title: const Text("ロール設定", style: TextStyle(fontSize: 20)),
+          //   onTap: openStackchanRoleSettings,
+          // ),
         ],
       ),
     );
