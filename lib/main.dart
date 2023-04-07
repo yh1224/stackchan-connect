@@ -49,14 +49,6 @@ class MyHomePage extends StatelessWidget {
                 ),
               ),
             ),
-            // ListTile(
-            //   title: const Text("設定"),
-            //   onTap: () {
-            //     Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-            //       return const SettingsPage();
-            //     }));
-            //   },
-            // ),
             Link(
               uri: Uri.parse('https://notes.yh1224.com/stackchan-connect/'),
               target: LinkTarget.blank,
@@ -81,32 +73,29 @@ class MyHomePage extends StatelessWidget {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              Center(
-                child: TextButton(
-                  onPressed: () => {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                      return const SpeechPage();
-                    }))
-                  },
-                  child: const Text("おはなし", style: TextStyle(fontSize: 40)),
-                ),
-              ),
-              Center(
-                child: TextButton(
-                  onPressed: () => {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                      return const SettingsPage();
-                    }))
-                  },
-                  child: const Text("設定", style: TextStyle(fontSize: 40)),
-                ),
-              ),
-            ],
-          ),
+        child: Column(
+          children: [
+            ListTile(
+              title: const Text("おはなし", style: TextStyle(fontSize: 32)),
+              subtitle: const Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: TextStyle(fontSize: 20)),
+              leading: const Icon(Icons.speaker_notes, size: 32),
+              onTap: () => {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                  return const SpeechPage();
+                }))
+              },
+            ),
+            ListTile(
+              title: const Text("設定", style: TextStyle(fontSize: 32)),
+              subtitle: const Text("ｽﾀｯｸﾁｬﾝ を接続・設定します。", style: TextStyle(fontSize: 20)),
+              leading: const Icon(Icons.settings, size: 32),
+              onTap: () => {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                  return const SettingsPage();
+                }))
+              },
+            ),
+          ],
         ),
       ),
     );
