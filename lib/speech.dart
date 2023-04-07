@@ -20,7 +20,7 @@ class _SpeechPageState extends State<SpeechPage> {
   final List<String> result = [];
   String sttStatus = '';
   String mode = 'chat';
-  String voice = '0';
+  String voice = '1';
   bool isListening = false;
   bool isLoading = false;
   final stt.SpeechToText speech = stt.SpeechToText();
