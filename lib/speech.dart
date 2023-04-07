@@ -216,23 +216,27 @@ class _SpeechPageState extends State<SpeechPage> {
                             items: const [
                               DropdownMenuItem(
                                 value: '0',
-                                child: Text("声: 0"),
+                                child: Text("Voice: Neutral"),
                               ),
                               DropdownMenuItem(
                                 value: '1',
-                                child: Text("声: 1"),
+                                child: Text("Voice: Happy"),
                               ),
                               DropdownMenuItem(
                                 value: '2',
-                                child: Text("声: 2"),
+                                child: Text("Voice: Sleepy"),
                               ),
                               DropdownMenuItem(
                                 value: '3',
-                                child: Text("声: 3"),
+                                child: Text("Voice: Doubt"),
                               ),
                               DropdownMenuItem(
                                 value: '4',
-                                child: Text("声: 4"),
+                                child: Text("Voice: Sad"),
+                              ),
+                              DropdownMenuItem(
+                                value: '5',
+                                child: Text("Voice: Angry"),
                               ),
                             ],
                             onChanged: (String? value) {
