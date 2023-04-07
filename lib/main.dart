@@ -76,7 +76,7 @@ class MyHomePage extends StatelessWidget {
         child: Column(
           children: [
             ListTile(
-              title: const Text("おはなし", style: TextStyle(fontSize: 32)),
+              title: const Text("おしゃべり", style: TextStyle(fontSize: 32)),
               subtitle: const Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: TextStyle(fontSize: 20)),
               leading: const Icon(Icons.speaker_notes, size: 32),
               onTap: () => {
