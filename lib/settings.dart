@@ -17,7 +17,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final stackchanIpAddressTextArea = TextEditingController();
 
-  String stackchanIpAddress = '';
   String errorMessage = '';
   bool isLoading = false;
   String? apiKeySettingUrl;
@@ -25,6 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     restoreSettings();
+    stackchanIpAddressTextArea.addListener(onUpdate);
     super.initState();
   }
 
@@ -34,23 +34,18 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
-  void setStackchanIpAddress(String value) async {
-    setState(() {
-      stackchanIpAddress = value;
-    });
-    var prefs = await SharedPreferences.getInstance();
-    await prefs.setString('stackchanIpAddress', stackchanIpAddress);
-  }
-
   void restoreSettings() async {
     var prefs = await SharedPreferences.getInstance();
-    setState(() {
-      stackchanIpAddress = prefs.getString('stackchanIpAddress') ?? '';
-    });
-    stackchanIpAddressTextArea.text = stackchanIpAddress;
+    stackchanIpAddressTextArea.text = prefs.getString('stackchanIpAddress') ?? '';
+  }
+
+  void onUpdate() async {
+    var prefs = await SharedPreferences.getInstance();
+    await prefs.setString('stackchanIpAddress', stackchanIpAddressTextArea.text);
   }
 
   void test() async {
+    final stackchanIpAddress = stackchanIpAddressTextArea.text;
     if (stackchanIpAddress.isNotEmpty) {
       try {
         setState(() {
@@ -99,11 +94,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void startSmartConfig() async {
-    final result = await Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => const SmartConfigPage()));
+    final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SmartConfigPage()));
     debugPrint("SmartConfig result: $result");
     if (result != null) {
-      setStackchanIpAddress(result);
       stackchanIpAddressTextArea.text = result;
     }
   }
@@ -125,16 +118,18 @@ class _SettingsPageState extends State<SettingsPage> {
                 autofocus: true,
                 controller: stackchanIpAddressTextArea,
                 style: const TextStyle(fontSize: 20),
-                onChanged: (String value) {
-                  setStackchanIpAddress(value);
-                },
               ),
-              ElevatedButton(
-                onPressed: stackchanIpAddress.isEmpty || isLoading ? null : test,
-                child: const Text(
-                  'Test',
-                  style: TextStyle(fontSize: 20),
-                ),
+              ValueListenableBuilder(
+                valueListenable: stackchanIpAddressTextArea,
+                builder: (context, value, child) {
+                  return ElevatedButton(
+                    onPressed: stackchanIpAddressTextArea.text.isEmpty || isLoading ? null : test,
+                    child: const Text(
+                      'Test',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  );
+                },
               ),
               Text(errorMessage),
               Visibility(
@@ -150,11 +145,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               Visibility(
-                visible: canSmartConfig() && stackchanIpAddress.isEmpty,
+                visible: canSmartConfig(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("M5Burner 版の AI ｽﾀｯｸﾁｬﾝ など SmartConfig に対応している場合、以下から自動設定できます。"),
+                    const Text("M5Burner 版の AI ｽﾀｯｸﾁｬﾝ など SmartConfig に対応している場合は、以下から自動設定できます。"),
                     ElevatedButton(
                       onPressed: startSmartConfig,
                       child: const Text(
