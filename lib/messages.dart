@@ -14,7 +14,7 @@ class Message {
 }
 
 class MessageRepository {
-  static const String dbFileName = "messages";
+  static const String dbFileName = "messages.db";
   static const String tableName = "messages";
 
   Future<Database> get db async {
