@@ -8,6 +8,43 @@ import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import 'messages.dart';
+
+class ChatBubble extends StatelessWidget {
+  const ChatBubble({
+    Key? key,
+    required this.dateTime,
+    required this.text,
+    required this.me,
+  }) : super(key: key);
+  final DateTime dateTime;
+  final String text;
+  final bool me;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(me ? 32.0 : 8.0, 4, me ? 8.0 : 32.0, 4),
+      child: Align(
+        alignment: me ? Alignment.centerRight : Alignment.centerLeft,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: me ? Colors.grey[300] : Colors.blue,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: me ? Colors.black : Colors.white),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SpeechPage extends StatefulWidget {
   const SpeechPage({super.key});
 
@@ -16,8 +53,11 @@ class SpeechPage extends StatefulWidget {
 }
 
 class _SpeechPageState extends State<SpeechPage> {
+  static const int maxMessages = 100;
+
   final textArea = TextEditingController();
-  final List<String> result = [];
+  final messageRepository = MessageRepository();
+  List<Message> messages = [];
   String sttStatus = '';
   String mode = 'chat';
   String voice = '1';
@@ -26,9 +66,40 @@ class _SpeechPageState extends State<SpeechPage> {
   final stt.SpeechToText speech = stt.SpeechToText();
 
   @override
+  void initState() {
+    super.initState();
+    init();
+  }
+
+  void init() async {
+    final savedMessages = await messageRepository.getMessages(maxMessages);
+    setState(() {
+      messages.addAll(savedMessages);
+    });
+  }
+
+  @override
   void dispose() {
     textArea.dispose();
     super.dispose();
+  }
+
+  void clearMessages() {
+    messageRepository.clearAll();
+    setState(() {
+      messages.clear();
+    });
+  }
+
+  void appendMessage(String kind, String text) async {
+    final message = Message(createdAt: DateTime.now(), kind: kind, text: text);
+    messageRepository.append(message);
+    setState(() {
+      messages.add(message);
+      if (messages.length > maxMessages) {
+        messages.removeAt(0);
+      }
+    });
   }
 
   // 音声入力開始
@@ -104,37 +175,38 @@ class _SpeechPageState extends State<SpeechPage> {
     try {
       var stackchanIpAddress = prefs.getString('stackchanIpAddress');
       if (stackchanIpAddress != null && stackchanIpAddress.isNotEmpty) {
-        final message = textArea.text;
+        final message = textArea.text.trim();
         setState(() {
           textArea.clear();
           isLoading = true;
         });
-        result.add('> $message');
         Response res;
         if (mode == 'chat') {
+          appendMessage(Message.kindRequest, message);
           res = await http.post(Uri.http(stackchanIpAddress, '/chat'), body: {'text': message, 'voice': voice});
         } else {
           // echo
           res = await http.post(Uri.http(stackchanIpAddress, '/speech'), body: {'say': message, 'voice': voice});
+          if (res.statusCode == 200) {
+            appendMessage(Message.kindReply, message);
+          }
         }
         if (res.statusCode != 200) {
           setState(() {
-            result.add('Error: ${res.statusCode}');
+            appendMessage(Message.kindError, 'Error: ${res.statusCode}');
           });
         }
         var body = utf8.decode(res.bodyBytes);
         var si = body.indexOf("<body>");
         var ei = body.indexOf("</body>");
         if (si >= 0 && ei >= 0) {
-          result.add(body.substring(si + 6, ei));
+          appendMessage(Message.kindReply, body.substring(si + 6, ei));
         }
       } else {
-        result.add('ｽﾀｯｸﾁｬﾝ の IP アドレスが設定されていません');
+        appendMessage(Message.kindError, 'ｽﾀｯｸﾁｬﾝ の IP アドレスが設定されていません');
       }
     } catch (e) {
-      setState(() {
-        result.add('Error: ${e.toString()}');
-      });
+      appendMessage(Message.kindError, 'Error: ${e.toString()}');
     } finally {
       setState(() {
         isLoading = false;
@@ -158,145 +230,176 @@ class _SpeechPageState extends State<SpeechPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
+        actions: [
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem(
+                  child: const Text("クリア"),
+                  onTap: () {
+                    setState(() {
+                      clearMessages();
+                    });
+                  },
+                )
+              ];
+            },
+          )
+        ],
       ),
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
+      body: Column(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.all(8.0),
+                      reverse: true,
+                      children: messages.reversed
+                          .map((r) => r.kind == Message.kindError
+                              ? Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    r.text,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                )
+                              : ChatBubble(
+                                  dateTime: r.createdAt,
+                                  text: r.text,
+                                  me: r.kind == Message.kindRequest,
+                                ))
+                          .toList(),
+                    ),
+                  ),
+                  Visibility(
+                    visible: sttStatus.isNotEmpty,
+                    child: Text(sttStatus),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: Row(
                   children: [
                     Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.all(8.0),
-                        children: result.map((r) => Text(r, style: const TextStyle(fontSize: 16))).toList(),
+                      child: Center(
+                        child: DropdownButton(
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'speech',
+                              child: Text("しゃべって"),
+                            ),
+                            DropdownMenuItem(
+                              value: 'chat',
+                              child: Text("会話する"),
+                            ),
+                          ],
+                          onChanged: (String? value) {
+                            setState(() {
+                              if (value != null) {
+                                mode = value;
+                              }
+                            });
+                          },
+                          value: mode,
+                        ),
                       ),
                     ),
-                    Text(sttStatus),
+                    Expanded(
+                      child: Center(
+                        child: DropdownButton(
+                          items: const [
+                            DropdownMenuItem(
+                              value: '0',
+                              child: Text("Voice: Neutral"),
+                            ),
+                            DropdownMenuItem(
+                              value: '1',
+                              child: Text("Voice: Happy"),
+                            ),
+                            DropdownMenuItem(
+                              value: '2',
+                              child: Text("Voice: Sleepy"),
+                            ),
+                            DropdownMenuItem(
+                              value: '3',
+                              child: Text("Voice: Doubt"),
+                            ),
+                            DropdownMenuItem(
+                              value: '4',
+                              child: Text("Voice: Sad"),
+                            ),
+                            DropdownMenuItem(
+                              value: '5',
+                              child: Text("Voice: Angry"),
+                            ),
+                          ],
+                          onChanged: (String? value) {
+                            setState(() {
+                              if (value != null) {
+                                voice = value;
+                              }
+                            });
+                          },
+                          value: voice,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-            Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Center(
-                          child: DropdownButton(
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'speech',
-                                child: Text("しゃべって"),
-                              ),
-                              DropdownMenuItem(
-                                value: 'chat',
-                                child: Text("会話する"),
-                              ),
-                            ],
-                            onChanged: (String? value) {
-                              setState(() {
-                                if (value != null) {
-                                  mode = value;
-                                }
-                              });
-                            },
-                            value: mode,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: DropdownButton(
-                            items: const [
-                              DropdownMenuItem(
-                                value: '0',
-                                child: Text("Voice: Neutral"),
-                              ),
-                              DropdownMenuItem(
-                                value: '1',
-                                child: Text("Voice: Happy"),
-                              ),
-                              DropdownMenuItem(
-                                value: '2',
-                                child: Text("Voice: Sleepy"),
-                              ),
-                              DropdownMenuItem(
-                                value: '3',
-                                child: Text("Voice: Doubt"),
-                              ),
-                              DropdownMenuItem(
-                                value: '4',
-                                child: Text("Voice: Sad"),
-                              ),
-                              DropdownMenuItem(
-                                value: '5',
-                                child: Text("Voice: Angry"),
-                              ),
-                            ],
-                            onChanged: (String? value) {
-                              setState(() {
-                                if (value != null) {
-                                  voice = value;
-                                }
-                              });
-                            },
-                            value: voice,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Focus(
-                          onFocusChange: (hasFocus) {
-                            if (hasFocus) {
-                              stopListening();
-                            }
-                          },
-                          child: TextField(
-                            controller: textArea,
-                            keyboardType: TextInputType.multiline,
-                            maxLines: null,
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                        ),
-                      ),
-                      ValueListenableBuilder(
-                        valueListenable: textArea,
-                        builder: (context, value, child) {
-                          return IconButton(
-                            color: Colors.blue,
-                            icon: textArea.text.isEmpty
-                                ? (isListening ? const Icon(Icons.stop) : const Icon(Icons.mic))
-                                : const Icon(Icons.send),
-                            onPressed: isLoading
-                                ? null
-                                : (textArea.text.isEmpty
-                                    ? isListening
-                                        ? stopListening
-                                        : startListening
-                                    : callStackchan),
-                          );
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            stopListening();
+                          }
                         },
+                        child: TextField(
+                          controller: textArea,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          style: const TextStyle(fontSize: 20),
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    ValueListenableBuilder(
+                      valueListenable: textArea,
+                      builder: (context, value, child) {
+                        return IconButton(
+                          color: Colors.blue,
+                          icon: textArea.text.isEmpty
+                              ? (isListening ? const Icon(Icons.stop) : const Icon(Icons.mic))
+                              : const Icon(Icons.send),
+                          onPressed: isLoading
+                              ? null
+                              : (textArea.text.isEmpty
+                                  ? isListening
+                                      ? stopListening
+                                      : startListening
+                                  : callStackchan),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
