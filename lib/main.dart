@@ -39,13 +39,13 @@ class MyHomePage extends StatelessWidget {
       drawer: Drawer(
         child: ListView(
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blueAccent),
+            DrawerHeader(
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
               child: Text(
                 "ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ",
                 style: TextStyle(
                   fontSize: 24,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
             ),

@@ -191,9 +191,9 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
-                    children: const [
+                    children: [
                       CircularProgressIndicator(
-                        color: Colors.green,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   ),

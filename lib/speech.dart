@@ -29,14 +29,17 @@ class ChatBubble extends StatelessWidget {
         alignment: me ? Alignment.centerRight : Alignment.centerLeft,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: me ? Colors.grey[300] : Colors.blue,
+            color: me ? Colors.grey[300] : Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
               text,
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: me ? Colors.black : Colors.white),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(color: me ? Colors.black : Theme.of(context).colorScheme.onPrimary),
             ),
           ),
         ),
@@ -265,7 +268,7 @@ class _SpeechPageState extends State<SpeechPage> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
                                     r.text,
-                                    style: const TextStyle(color: Colors.red),
+                                    style: TextStyle(color: Theme.of(context).colorScheme.error),
                                   ),
                                 )
                               : ChatBubble(
@@ -387,7 +390,7 @@ class _SpeechPageState extends State<SpeechPage> {
                       valueListenable: textArea,
                       builder: (context, value, child) {
                         return IconButton(
-                          color: Colors.blue,
+                          color: Theme.of(context).colorScheme.primary,
                           icon: textArea.text.isEmpty
                               ? (isListening ? const Icon(Icons.stop) : const Icon(Icons.mic))
                               : const Icon(Icons.send),
