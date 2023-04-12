@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'settings/apikeys.dart';
+import 'settings/face.dart';
 import 'settings/ipaddress.dart';
 import 'settings/role.dart';
 import 'settings/stackchan.dart';
@@ -43,6 +44,10 @@ class _SettingsPageState extends State<SettingsPage> {
     Navigator.of(context).push(MaterialPageRoute(builder: (context) => StackchanSettingsPage(stackchanIpAddress)));
   }
 
+  void openStackchanFaceSettings() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => StackchanFaceSettingsPage(stackchanIpAddress)));
+  }
+
   void openStackchanRoleSettings() {
     Navigator.of(context).push(MaterialPageRoute(builder: (context) => StackchanRoleSettingsPage(stackchanIpAddress)));
   }
@@ -67,6 +72,10 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(
             title: const Text("ボリューム設定", style: TextStyle(fontSize: 20)),
             onTap: openStackchanSettings,
+          ),
+          ListTile(
+            title: const Text("表情設定", style: TextStyle(fontSize: 20)),
+            onTap: openStackchanFaceSettings,
           ),
           // ListTile(
           //   title: const Text("ロール設定", style: TextStyle(fontSize: 20)),
