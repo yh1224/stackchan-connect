@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:stackchan_connect/settings/role.dart';
 
 import 'settings/apikeys.dart';
 import 'settings/ipaddress.dart';
+import 'settings/role.dart';
+import 'settings/stackchan.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -38,6 +39,10 @@ class _SettingsPageState extends State<SettingsPage> {
         .push(MaterialPageRoute(builder: (context) => StackchanApiKeysSettingsPage(stackchanIpAddress)));
   }
 
+  void openStackchanSettings() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => StackchanSettingsPage(stackchanIpAddress)));
+  }
+
   void openStackchanRoleSettings() {
     Navigator.of(context).push(MaterialPageRoute(builder: (context) => StackchanRoleSettingsPage(stackchanIpAddress)));
   }
@@ -58,6 +63,10 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(
             title: const Text("API Key 設定", style: TextStyle(fontSize: 20)),
             onTap: openStackchanApiKeysSettings,
+          ),
+          ListTile(
+            title: const Text("ボリューム設定", style: TextStyle(fontSize: 20)),
+            onTap: openStackchanSettings,
           ),
           // ListTile(
           //   title: const Text("ロール設定", style: TextStyle(fontSize: 20)),
