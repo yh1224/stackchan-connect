@@ -277,6 +277,13 @@ class _SpeechPageState extends State<SpeechPage> {
                     ),
                   ),
                   Visibility(
+                    visible: isLoading,
+                    child: const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: LinearProgressIndicator(),
+                    ),
+                  ),
+                  Visibility(
                     visible: sttStatus.isNotEmpty,
                     child: Text(sttStatus),
                   ),
