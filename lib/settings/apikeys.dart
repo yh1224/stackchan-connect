@@ -16,6 +16,7 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
   final openaiApiKeyTextArea = TextEditingController();
   final voicetextApiKeyTextArea = TextEditingController();
 
+  bool isLoading = false;
   bool hasApiKeySetting = false;
   bool isOpenaiApiKeyObscure = true;
   bool isVoicetextApiKeyObscure = true;
@@ -60,16 +61,22 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
     }
 
     setState(() {
-      errorMessage = "確認中です...";
+      isLoading = true;
+      errorMessage = "";
     });
-    if (await Stackchan(stackchanIpAddress).hasApiKeysApi()) {
+    try {
+      if (await Stackchan(stackchanIpAddress).hasApiKeysApi()) {
+        setState(() {
+          hasApiKeySetting = true;
+        });
+      } else {
+        setState(() {
+          errorMessage = "API Key を設定できません。";
+        });
+      }
+    } finally {
       setState(() {
-        hasApiKeySetting = true;
-        errorMessage = "";
-      });
-    } else {
-      setState(() {
-        errorMessage = "API Key を設定できません。";
+        isLoading = false;
       });
     }
   }
@@ -77,6 +84,10 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
   void updateApiKeys() async {
     final openaiApiKey = openaiApiKeyTextArea.text;
     final voicetextApiKey = voicetextApiKeyTextArea.text;
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
     try {
       await Stackchan(widget.stackchanIpAddress).setApiKeys(openai: openaiApiKey, voicetext: voicetextApiKey);
       setState(() {
@@ -85,6 +96,10 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
     } catch (e) {
       setState(() {
         errorMessage = 'Error: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
       });
     }
   }
@@ -148,6 +163,13 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(errorMessage),
+                Visibility(
+                  visible: isLoading,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(),
+                  ),
+                ),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

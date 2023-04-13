@@ -14,6 +14,7 @@ class StackchanSettingsPage extends StatefulWidget {
 
 class _StackchanSettingsPageState extends State<StackchanSettingsPage> {
   int volume = 255;
+  bool isLoading = false;
   bool hasSettingApi = false;
   String errorMessage = '';
 
@@ -42,16 +43,22 @@ class _StackchanSettingsPageState extends State<StackchanSettingsPage> {
     }
 
     setState(() {
-      errorMessage = "確認中です...";
+      isLoading = true;
+      errorMessage = "";
     });
-    if (await Stackchan(stackchanIpAddress).hasSettingApi()) {
+    try {
+      if (await Stackchan(stackchanIpAddress).hasSettingApi()) {
+        setState(() {
+          hasSettingApi = true;
+        });
+      } else {
+        setState(() {
+          errorMessage = "設定できません。";
+        });
+      }
+    } finally {
       setState(() {
-        hasSettingApi = true;
-        errorMessage = "";
-      });
-    } else {
-      setState(() {
-        errorMessage = "設定できません。";
+        isLoading = false;
       });
     }
   }
@@ -60,6 +67,10 @@ class _StackchanSettingsPageState extends State<StackchanSettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('volume', volume);
 
+    setState(() {
+      isLoading = true;
+      errorMessage = "";
+    });
     try {
       await Stackchan(widget.stackchanIpAddress).setting(volume: "$volume");
       setState(() {
@@ -68,6 +79,10 @@ class _StackchanSettingsPageState extends State<StackchanSettingsPage> {
     } catch (e) {
       setState(() {
         errorMessage = 'Error: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
       });
     }
   }
@@ -115,6 +130,13 @@ class _StackchanSettingsPageState extends State<StackchanSettingsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(errorMessage),
+                Visibility(
+                  visible: isLoading,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(),
+                  ),
+                ),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

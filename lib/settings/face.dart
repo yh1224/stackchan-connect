@@ -12,6 +12,7 @@ class StackchanFaceSettingsPage extends StatefulWidget {
 }
 
 class _StackchanFaceSettingsPageState extends State<StackchanFaceSettingsPage> {
+  bool isLoading = false;
   bool hasFaceApi = false;
   String errorMessage = '';
 
@@ -32,21 +33,31 @@ class _StackchanFaceSettingsPageState extends State<StackchanFaceSettingsPage> {
     }
 
     setState(() {
-      errorMessage = "確認中です...";
+      isLoading = true;
+      errorMessage = "";
     });
-    if (await Stackchan(stackchanIpAddress).hasFaceApi()) {
+    try {
+      if (await Stackchan(stackchanIpAddress).hasFaceApi()) {
+        setState(() {
+          hasFaceApi = true;
+        });
+      } else {
+        setState(() {
+          errorMessage = "設定できません。";
+        });
+      }
+    } finally {
       setState(() {
-        hasFaceApi = true;
-        errorMessage = "";
-      });
-    } else {
-      setState(() {
-        errorMessage = "設定できません。";
+        isLoading = false;
       });
     }
   }
 
   void updateFace(int value) async {
+    setState(() {
+      isLoading = true;
+      errorMessage = "";
+    });
     try {
       await Stackchan(widget.stackchanIpAddress).face("$value");
       setState(() {
@@ -55,6 +66,10 @@ class _StackchanFaceSettingsPageState extends State<StackchanFaceSettingsPage> {
     } catch (e) {
       setState(() {
         errorMessage = 'Error: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
       });
     }
   }
@@ -117,7 +132,18 @@ class _StackchanFaceSettingsPageState extends State<StackchanFaceSettingsPage> {
           Container(
             padding: const EdgeInsets.all(8.0),
             width: double.infinity,
-            child: Text(errorMessage),
+            child: Column(
+              children: [
+                Text(errorMessage),
+                Visibility(
+                  visible: isLoading,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

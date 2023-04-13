@@ -44,25 +44,27 @@ class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSetti
 
   void test() async {
     final stackchanIpAddress = stackchanIpAddressTextArea.text;
-    if (stackchanIpAddress.isNotEmpty) {
-      try {
-        setState(() {
-          errorMessage = 'Connecting...';
-          isLoading = true;
-        });
-        Stackchan(stackchanIpAddress).speech("接続できました");
-        setState(() {
-          errorMessage = '接続できました';
-        });
-      } catch (e) {
-        setState(() {
-          errorMessage = 'Error: ${e.toString()}';
-        });
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
-      }
+    if (stackchanIpAddress.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+    try {
+      await Stackchan(stackchanIpAddress).speech("接続できました");
+      setState(() {
+        errorMessage = '接続できました';
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -135,6 +137,13 @@ class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSetti
                 Text(
                   errorMessage,
                   style: const TextStyle(fontSize: 20),
+                ),
+                Visibility(
+                  visible: isLoading,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(),
+                  ),
                 ),
                 SizedBox(
                   width: double.infinity,

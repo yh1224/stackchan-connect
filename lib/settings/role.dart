@@ -17,6 +17,7 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
   static const maxRoleCount = 5; // TODO: とりあえず固定
   final roleTextAreas = List.generate(maxRoleCount, (int index) => TextEditingController());
 
+  bool isLoading = false;
   bool hasRole = false;
   String errorMessage = '';
 
@@ -45,7 +46,8 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
     }
 
     setState(() {
-      errorMessage = "確認中です...";
+      isLoading = true;
+      errorMessage = "";
     });
     try {
       final roles = await Stackchan(stackchanIpAddress).getRoles();
@@ -54,7 +56,6 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
       }
       setState(() {
         hasRole = true;
-        errorMessage = "";
       });
       if (roles.length > maxRoleCount) {
         setState(() {
@@ -65,10 +66,18 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
       setState(() {
         errorMessage = "ロールを設定できません。";
       });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   void updateRoles() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = "";
+    });
     final roles = roleTextAreas.map((roleTextArea) => roleTextArea.text).where((text) => text.isNotEmpty).toList();
     try {
       await Stackchan(widget.stackchanIpAddress).setRoles(roles);
@@ -78,6 +87,10 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
     } catch (e) {
       setState(() {
         errorMessage = 'Error: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
       });
     }
   }
@@ -117,6 +130,13 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(errorMessage),
+                Visibility(
+                  visible: isLoading,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(),
+                  ),
+                ),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
