@@ -44,6 +44,7 @@ dependencies:
   network_info_plus: ^3.0.2
   permission_handler: ^10.2.0
   sqflite: ^2.2.6
+  http_retry: ^0.2.0
 
 dev_dependencies:
   flutter_test:
