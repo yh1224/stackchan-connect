@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../control.dart';
 
 class StackchanApiKeysSettingsPage extends StatefulWidget {
   const StackchanApiKeysSettingsPage(this.stackchanIpAddress, {super.key});
@@ -61,41 +62,23 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
     setState(() {
       errorMessage = "確認中です...";
     });
-    var ok = false;
-    try {
-      final res = await http.get(Uri.http(stackchanIpAddress, "/apikey"));
-      ok = res.statusCode == 200;
-    } catch (e) {
-      debugPrint(e.toString());
-    } finally {
-      if (ok) {
-        setState(() {
-          hasApiKeySetting = true;
-          errorMessage = "";
-        });
-      } else {
-        setState(() {
-          errorMessage = "API Key を設定できません。";
-        });
-      }
+    if (await Stackchan(stackchanIpAddress).hasApiKeysApi()) {
+      setState(() {
+        hasApiKeySetting = true;
+        errorMessage = "";
+      });
+    } else {
+      setState(() {
+        errorMessage = "API Key を設定できません。";
+      });
     }
   }
 
   void updateApiKeys() async {
     final openaiApiKey = openaiApiKeyTextArea.text;
     final voicetextApiKey = voicetextApiKeyTextArea.text;
-    // try speech API
     try {
-      final res = await http.post(Uri.http(widget.stackchanIpAddress, "/apikey_set"), body: {
-        "openai": openaiApiKey,
-        "voicetext": voicetextApiKey,
-      });
-      if (res.statusCode != 200) {
-        setState(() {
-          errorMessage = 'Error: ${res.statusCode}';
-        });
-      }
-
+      await Stackchan(widget.stackchanIpAddress).setApiKeys(openai: openaiApiKey, voicetext: voicetextApiKey);
       setState(() {
         errorMessage = '設定に成功しました。';
       });

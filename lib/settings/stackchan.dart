@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../control.dart';
 
 class StackchanSettingsPage extends StatefulWidget {
   const StackchanSettingsPage(this.stackchanIpAddress, {super.key});
@@ -43,23 +44,15 @@ class _StackchanSettingsPageState extends State<StackchanSettingsPage> {
     setState(() {
       errorMessage = "確認中です...";
     });
-    var ok = false;
-    try {
-      final res = await http.get(Uri.http(stackchanIpAddress, "/setting"));
-      ok = res.statusCode == 200;
-    } catch (e) {
-      debugPrint(e.toString());
-    } finally {
-      if (ok) {
-        setState(() {
-          hasSettingApi = true;
-          errorMessage = "";
-        });
-      } else {
-        setState(() {
-          errorMessage = "設定できません。";
-        });
-      }
+    if (await Stackchan(stackchanIpAddress).hasSettingApi()) {
+      setState(() {
+        hasSettingApi = true;
+        errorMessage = "";
+      });
+    } else {
+      setState(() {
+        errorMessage = "設定できません。";
+      });
     }
   }
 
@@ -67,17 +60,8 @@ class _StackchanSettingsPageState extends State<StackchanSettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('volume', volume);
 
-    // try speech API
     try {
-      final res = await http.post(Uri.http(widget.stackchanIpAddress, "/setting"), body: {
-        "volume": "$volume",
-      });
-      if (res.statusCode != 200) {
-        setState(() {
-          errorMessage = 'Error: ${res.statusCode}';
-        });
-      }
-
+      await Stackchan(widget.stackchanIpAddress).setting(volume: "$volume");
       setState(() {
         errorMessage = '設定に成功しました。';
       });

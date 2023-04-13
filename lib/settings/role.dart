@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../control.dart';
 
 class StackchanRoleSettingsPage extends StatefulWidget {
   const StackchanRoleSettingsPage(this.stackchanIpAddress, {super.key});
@@ -50,50 +49,26 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
     setState(() {
       errorMessage = "確認中です...";
     });
-    var ok = false;
     try {
-      final res = await http.get(Uri.http(stackchanIpAddress, "/role_get"));
-      ok = res.statusCode == 200;
-      if (ok) {
-        var body = utf8.decode(res.bodyBytes);
-        var si = body.indexOf("<pre>");
-        var ei = body.indexOf("</pre>");
-        if (si >= 0 && ei >= 0) {
-          body = body.substring(si + 5, ei);
-        }
-        final json = jsonDecode(body);
-        final role = json['messages'].firstWhere((message) => message['role'] == 'system');
-        if (role != null) {
-          roleTextArea.text = role['content'];
-        }
+      final roles = await Stackchan(stackchanIpAddress).getRoles();
+      if (roles.isNotEmpty) {
+        roleTextArea.text = roles[0];
       }
+      setState(() {
+        hasRole = true;
+        errorMessage = "";
+      });
     } catch (e) {
-      debugPrint(e.toString());
-    } finally {
-      if (ok) {
-        setState(() {
-          hasRole = true;
-          errorMessage = "";
-        });
-      } else {
-        setState(() {
-          errorMessage = "ロールを設定できません。";
-        });
-      }
+      setState(() {
+        errorMessage = "ロールを設定できません。";
+      });
     }
   }
 
   void updateRole() async {
     final role = roleTextArea.text;
-    // try speech API
     try {
-      final res = await http.post(Uri.http(widget.stackchanIpAddress, "/role_set"), body: role);
-      if (res.statusCode != 200) {
-        setState(() {
-          errorMessage = 'Error: ${res.statusCode}';
-        });
-      }
-
+      await Stackchan(widget.stackchanIpAddress).setRoles([role]);
       setState(() {
         errorMessage = '設定に成功しました。';
       });

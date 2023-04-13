@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../control.dart';
 import 'smartconfig.dart';
 
 class StackchanIpAddressSettingsPage extends StatefulWidget {
@@ -18,7 +18,6 @@ class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSetti
 
   String errorMessage = '';
   bool isLoading = false;
-  String? apiKeySettingUrl;
 
   @override
   void initState() {
@@ -49,31 +48,10 @@ class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSetti
       try {
         setState(() {
           errorMessage = 'Connecting...';
-          apiKeySettingUrl = null;
           isLoading = true;
         });
-
-        // check existence of apikey setting page
-        bool hasApiKeySetting = false;
-        try {
-          final res = await http.get(Uri.http(stackchanIpAddress, "/apikey"));
-          hasApiKeySetting = res.statusCode == 200;
-        } catch (e) {
-          debugPrint(e.toString());
-        }
-
-        // try speech API
-        final res = await http.post(Uri.http(stackchanIpAddress, "/speech"), body: {
-          "say": "接続できました",
-        });
-        if (res.statusCode != 200) {
-          setState(() {
-            errorMessage = 'Error: ${res.statusCode}';
-          });
-        }
-
+        Stackchan(stackchanIpAddress).speech("接続できました");
         setState(() {
-          apiKeySettingUrl = hasApiKeySetting ? "http://$stackchanIpAddress/apikey" : null;
           errorMessage = '接続できました';
         });
       } catch (e) {

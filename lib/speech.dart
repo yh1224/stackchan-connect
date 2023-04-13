@@ -1,13 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import 'control.dart';
 import 'messages.dart';
 
 class ChatBubble extends StatelessWidget {
@@ -178,32 +177,21 @@ class _SpeechPageState extends State<SpeechPage> {
     try {
       var stackchanIpAddress = prefs.getString('stackchanIpAddress');
       if (stackchanIpAddress != null && stackchanIpAddress.isNotEmpty) {
-        final message = textArea.text.trim();
+        final request = textArea.text.trim();
         setState(() {
           textArea.clear();
           isLoading = true;
         });
-        Response res;
+        final stackchan = Stackchan(stackchanIpAddress);
+        String reply;
         if (mode == 'chat') {
-          appendMessage(Message.kindRequest, message);
-          res = await http.post(Uri.http(stackchanIpAddress, '/chat'), body: {'text': message, 'voice': voice});
+          appendMessage(Message.kindRequest, request);
+          reply = await stackchan.chat(request, voice: voice);
+          appendMessage(Message.kindReply, reply);
         } else {
           // echo
-          res = await http.post(Uri.http(stackchanIpAddress, '/speech'), body: {'say': message, 'voice': voice});
-          if (res.statusCode == 200) {
-            appendMessage(Message.kindReply, message);
-          }
-        }
-        if (res.statusCode != 200) {
-          setState(() {
-            appendMessage(Message.kindError, 'Error: ${res.statusCode}');
-          });
-        }
-        var body = utf8.decode(res.bodyBytes);
-        var si = body.indexOf("<body>");
-        var ei = body.indexOf("</body>");
-        if (si >= 0 && ei >= 0) {
-          appendMessage(Message.kindReply, body.substring(si + 6, ei));
+          reply = await stackchan.speech(request, voice: voice);
+          appendMessage(Message.kindReply, request);
         }
       } else {
         appendMessage(Message.kindError, 'ｽﾀｯｸﾁｬﾝ の IP アドレスが設定されていません');

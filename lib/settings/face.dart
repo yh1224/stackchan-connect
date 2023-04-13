@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+
+import '../control.dart';
 
 class StackchanFaceSettingsPage extends StatefulWidget {
   const StackchanFaceSettingsPage(this.stackchanIpAddress, {super.key});
@@ -33,38 +34,21 @@ class _StackchanFaceSettingsPageState extends State<StackchanFaceSettingsPage> {
     setState(() {
       errorMessage = "確認中です...";
     });
-    var ok = false;
-    try {
-      final res = await http.get(Uri.http(stackchanIpAddress, "/face"));
-      ok = res.statusCode == 200;
-    } catch (e) {
-      debugPrint(e.toString());
-    } finally {
-      if (ok) {
-        setState(() {
-          hasFaceApi = true;
-          errorMessage = "";
-        });
-      } else {
-        setState(() {
-          errorMessage = "設定できません。";
-        });
-      }
+    if (await Stackchan(stackchanIpAddress).hasFaceApi()) {
+      setState(() {
+        hasFaceApi = true;
+        errorMessage = "";
+      });
+    } else {
+      setState(() {
+        errorMessage = "設定できません。";
+      });
     }
   }
 
   void updateFace(int value) async {
-    // try speech API
     try {
-      final res = await http.post(Uri.http(widget.stackchanIpAddress, "/face"), body: {
-        "expression": "$value",
-      });
-      if (res.statusCode != 200) {
-        setState(() {
-          errorMessage = 'Error: ${res.statusCode}';
-        });
-      }
-
+      await Stackchan(widget.stackchanIpAddress).face("$value");
       setState(() {
         errorMessage = '設定に成功しました。';
       });
