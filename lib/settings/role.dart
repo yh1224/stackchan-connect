@@ -1,5 +1,6 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../control.dart';
 
@@ -13,7 +14,8 @@ class StackchanRoleSettingsPage extends StatefulWidget {
 }
 
 class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
-  final roleTextArea = TextEditingController();
+  static const maxRoleCount = 5; // TODO: とりあえず固定
+  final roleTextAreas = List.generate(maxRoleCount, (int index) => TextEditingController());
 
   bool hasRole = false;
   String errorMessage = '';
@@ -21,19 +23,15 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
   @override
   void initState() {
     super.initState();
-    roleTextArea.addListener(onUpdate);
     getRole();
   }
 
   @override
   void dispose() {
-    roleTextArea.dispose();
+    for (var roleTextArea in roleTextAreas) {
+      roleTextArea.dispose();
+    }
     super.dispose();
-  }
-
-  void onUpdate() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('role', roleTextArea.text);
   }
 
   // check existence of apikey setting page
@@ -51,13 +49,18 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
     });
     try {
       final roles = await Stackchan(stackchanIpAddress).getRoles();
-      if (roles.isNotEmpty) {
-        roleTextArea.text = roles[0];
+      for (var i = 0; i < min(roleTextAreas.length, roles.length); i++) {
+        roleTextAreas[i].text = roles[i];
       }
       setState(() {
         hasRole = true;
         errorMessage = "";
       });
+      if (roles.length > maxRoleCount) {
+        setState(() {
+          errorMessage = "現在 ${roles.length} 個のロールが設定されています。このアプリでは $maxRoleCount 個までしか設定できませんのでご注意ください。";
+        });
+      }
     } catch (e) {
       setState(() {
         errorMessage = "ロールを設定できません。";
@@ -65,10 +68,10 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
     }
   }
 
-  void updateRole() async {
-    final role = roleTextArea.text;
+  void updateRoles() async {
+    final roles = roleTextAreas.map((roleTextArea) => roleTextArea.text).where((text) => text.isNotEmpty).toList();
     try {
-      await Stackchan(widget.stackchanIpAddress).setRoles([role]);
+      await Stackchan(widget.stackchanIpAddress).setRoles(roles);
       setState(() {
         errorMessage = '設定に成功しました。';
       });
@@ -93,16 +96,16 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      maxLines: null,
-                      decoration: const InputDecoration(
-                        labelText: "ロール",
-                      ),
-                      controller: roleTextArea,
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                  ],
+                  children: List.generate(
+                      maxRoleCount,
+                      (int index) => TextFormField(
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              labelText: "ロール ${index + 1}",
+                            ),
+                            controller: roleTextAreas[index],
+                            style: const TextStyle(fontSize: 20),
+                          )),
                 ),
               ),
             ),
@@ -117,7 +120,7 @@ class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: hasRole ? updateRole : null,
+                    onPressed: hasRole ? updateRoles : null,
                     child: const Text(
                       '設定',
                       style: TextStyle(fontSize: 20),
