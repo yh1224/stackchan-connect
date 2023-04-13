@@ -74,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: openStackchanRoleSettings,
           ),
           ListTile(
-            title: const Text("ボリューム設定", style: TextStyle(fontSize: 20)),
+            title: const Text("音量設定", style: TextStyle(fontSize: 20)),
             onTap: openStackchanSettings,
           ),
           ListTile(
