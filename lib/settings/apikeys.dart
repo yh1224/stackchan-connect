@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../control.dart';
 
@@ -13,14 +15,22 @@ class StackchanApiKeysSettingsPage extends StatefulWidget {
 }
 
 class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsPage> {
-  final openaiApiKeyTextArea = TextEditingController();
-  final voicetextApiKeyTextArea = TextEditingController();
+  /// 初期化完了
+  bool initialized = false;
 
-  bool isLoading = false;
-  bool hasApiKeySetting = false;
+  /// 設定更新中
+  bool updating = false;
+
+  /// ステータスメッセージ
+  String statusMessage = "";
+
+  /// OpenAI API Key 入力
+  final openaiApiKeyTextArea = TextEditingController();
   bool isOpenaiApiKeyObscure = true;
+
+  /// VoiceText API Key 入力
+  final voicetextApiKeyTextArea = TextEditingController();
   bool isVoicetextApiKeyObscure = true;
-  String errorMessage = '';
 
   @override
   void initState() {
@@ -40,14 +50,14 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
 
   void restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    openaiApiKeyTextArea.text = prefs.getString('openaiApiKey') ?? '';
-    voicetextApiKeyTextArea.text = prefs.getString('voicetextApiKey') ?? '';
+    openaiApiKeyTextArea.text = prefs.getString("openaiApiKey") ?? "";
+    voicetextApiKeyTextArea.text = prefs.getString("voicetextApiKey") ?? "";
   }
 
   void onUpdate() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('openaiApiKey', openaiApiKeyTextArea.text);
-    await prefs.setString('voicetextApiKey', voicetextApiKeyTextArea.text);
+    await prefs.setString("openaiApiKey", openaiApiKeyTextArea.text);
+    await prefs.setString("voicetextApiKey", voicetextApiKeyTextArea.text);
   }
 
   // check existence of apikey setting page
@@ -55,28 +65,28 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
     final stackchanIpAddress = widget.stackchanIpAddress;
     if (stackchanIpAddress.isEmpty) {
       setState(() {
-        errorMessage = "IP アドレスを設定してください。";
+        statusMessage = "IP アドレスを設定してください。";
       });
       return;
     }
 
     setState(() {
-      isLoading = true;
-      errorMessage = "";
+      updating = true;
+      statusMessage = "";
     });
     try {
       if (await Stackchan(stackchanIpAddress).hasApiKeysApi()) {
         setState(() {
-          hasApiKeySetting = true;
+          initialized = true;
         });
       } else {
         setState(() {
-          errorMessage = "API Key を設定できません。";
+          statusMessage = "設定できません。";
         });
       }
     } finally {
       setState(() {
-        isLoading = false;
+        updating = false;
       });
     }
   }
@@ -85,21 +95,21 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
     final openaiApiKey = openaiApiKeyTextArea.text;
     final voicetextApiKey = voicetextApiKeyTextArea.text;
     setState(() {
-      isLoading = true;
-      errorMessage = '';
+      updating = true;
+      statusMessage = "";
     });
     try {
       await Stackchan(widget.stackchanIpAddress).setApiKeys(openai: openaiApiKey, voicetext: voicetextApiKey);
       setState(() {
-        errorMessage = '設定に成功しました。';
+        statusMessage = "設定しました。";
       });
     } catch (e) {
       setState(() {
-        errorMessage = 'Error: ${e.toString()}';
+        statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        isLoading = false;
+        updating = false;
       });
     }
   }
@@ -108,82 +118,146 @@ class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsP
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
+        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      obscureText: isOpenaiApiKeyObscure,
-                      decoration: InputDecoration(
-                        labelText: "OpenAI API Key",
-                        suffixIcon: IconButton(
-                          icon: Icon(isOpenaiApiKeyObscure ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () {
-                            setState(() {
-                              isOpenaiApiKeyObscure = !isOpenaiApiKeyObscure;
-                            });
-                          },
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          children: [
+            Expanded(
+              child: Visibility(
+                visible: initialized,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "ｽﾀｯｸﾁｬﾝ が ChatGPT を頭脳として使うために、",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              TextSpan(
+                                text: "OpenAI",
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    launchUrl(Uri.parse("https://platform.openai.com"));
+                                  },
+                              ),
+                              TextSpan(
+                                text: " から API Key を発行し、入力してください。",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      controller: openaiApiKeyTextArea,
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    TextFormField(
-                      obscureText: isVoicetextApiKeyObscure,
-                      decoration: InputDecoration(
-                        labelText: "VOICETEXT API Key",
-                        suffixIcon: IconButton(
-                          icon: Icon(isVoicetextApiKeyObscure ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () {
-                            setState(() {
-                              isVoicetextApiKeyObscure = !isVoicetextApiKeyObscure;
-                            });
-                          },
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          child: TextFormField(
+                            obscureText: isOpenaiApiKeyObscure,
+                            decoration: InputDecoration(
+                              labelText: "OpenAI API Key",
+                              suffixIcon: IconButton(
+                                icon: Icon(isOpenaiApiKeyObscure ? Icons.visibility_off : Icons.visibility),
+                                onPressed: () {
+                                  setState(() {
+                                    isOpenaiApiKeyObscure = !isOpenaiApiKeyObscure;
+                                  });
+                                },
+                              ),
+                            ),
+                            controller: openaiApiKeyTextArea,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
                         ),
-                      ),
-                      controller: voicetextApiKeyTextArea,
-                      style: const TextStyle(fontSize: 20),
+                        const SizedBox(height: 20.0),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "ｽﾀｯｸﾁｬﾝ が人間の声を話すために、音声合成エンジン ",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              TextSpan(
+                                text: "VoiceText Web API",
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    launchUrl(Uri.parse("https://cloud.voicetext.jp/webapi"));
+                                  },
+                              ),
+                              TextSpan(
+                                text: " から API Key を発行し、入力してください。",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          child: TextFormField(
+                            obscureText: isVoicetextApiKeyObscure,
+                            decoration: InputDecoration(
+                              labelText: "VOICETEXT API Key",
+                              suffixIcon: IconButton(
+                                icon: Icon(isVoicetextApiKeyObscure ? Icons.visibility_off : Icons.visibility),
+                                onPressed: () {
+                                  setState(() {
+                                    isVoicetextApiKeyObscure = !isVoicetextApiKeyObscure;
+                                  });
+                                },
+                              ),
+                            ),
+                            controller: voicetextApiKeyTextArea,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(errorMessage),
-                Visibility(
-                  visible: isLoading,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: LinearProgressIndicator(),
-                  ),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: hasApiKeySetting ? updateApiKeys : null,
-                    child: const Text(
-                      '設定',
-                      style: TextStyle(fontSize: 20),
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Visibility(
+                    visible: statusMessage.isNotEmpty,
+                    child: Text(
+                      statusMessage,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
-                ),
-              ],
+                  Visibility(
+                    visible: updating,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: LinearProgressIndicator(),
+                    ),
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: initialized ? updateApiKeys : null,
+                      child: Text(
+                        "設定",
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -33,10 +33,10 @@ class MessageRepository {
     final messages = await (await db).query(tableName, orderBy: "created_at", limit: limit);
     return List.generate(messages.length, (i) {
       return Message(
-        id: messages[i]['id'] as int,
-        createdAt: DateTime.parse(messages[i]['created_at'] as String),
-        kind: messages[i]['kind'] as String,
-        text: messages[i]['text'] as String,
+        id: messages[i]["id"] as int,
+        createdAt: DateTime.parse(messages[i]["created_at"] as String),
+        kind: messages[i]["kind"] as String,
+        text: messages[i]["text"] as String,
       );
     });
   }

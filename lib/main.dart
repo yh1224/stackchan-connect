@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/link.dart';
@@ -18,10 +19,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
-      child: const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ',
-        home: MyHomePage(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: kDebugMode,
+        title: "ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ",
+        theme: ThemeData(
+          useMaterial3: true,
+          colorSchemeSeed: Colors.teal,
+        ),
+        home: const MyHomePage(),
       ),
     );
   }
@@ -34,7 +39,7 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
+        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
       ),
       drawer: Drawer(
         child: ListView(
@@ -43,14 +48,13 @@ class MyHomePage extends StatelessWidget {
               decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
               child: Text(
                 "ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ",
-                style: TextStyle(
-                  fontSize: 24,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
+                style: Theme.of(context).textTheme.headlineLarge!.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
               ),
             ),
             Link(
-              uri: Uri.parse('https://notes.yh1224.com/stackchan-connect/'),
+              uri: Uri.parse("https://notes.yh1224.com/stackchan-connect/"),
               target: LinkTarget.blank,
               builder: (BuildContext ctx, FollowLink? openLink) {
                 return ListTile(
@@ -60,7 +64,7 @@ class MyHomePage extends StatelessWidget {
               },
             ),
             Link(
-              uri: Uri.parse('https://notes.yh1224.com/privacy/'),
+              uri: Uri.parse("https://notes.yh1224.com/privacy/"),
               target: LinkTarget.blank,
               builder: (BuildContext ctx, FollowLink? openLink) {
                 return ListTile(
@@ -72,30 +76,41 @@ class MyHomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ListTile(
-              title: const Text("おしゃべり", style: TextStyle(fontSize: 32)),
-              subtitle: const Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: TextStyle(fontSize: 20)),
-              leading: const Icon(Icons.speaker_notes, size: 32),
-              onTap: () => {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                  return const SpeechPage();
-                }))
-              },
+      body: GestureDetector(
+        child: Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Card(
+                    child: ListTile(
+                      title: Text("おしゃべり", style: Theme.of(context).textTheme.titleLarge),
+                      subtitle: Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: Theme.of(context).textTheme.titleMedium),
+                      leading: const Icon(Icons.speaker_notes, size: 48),
+                      onTap: () => {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                          return const SpeechPage();
+                        }))
+                      },
+                    ),
+                  ),
+                  Card(
+                    child: ListTile(
+                      title: Text("設定", style: Theme.of(context).textTheme.titleLarge),
+                      subtitle: Text("ｽﾀｯｸﾁｬﾝ を接続・設定します。", style: Theme.of(context).textTheme.titleMedium),
+                      leading: const Icon(Icons.settings, size: 48),
+                      onTap: () => {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                          return const SettingsPage();
+                        }))
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              title: const Text("設定", style: TextStyle(fontSize: 32)),
-              subtitle: const Text("ｽﾀｯｸﾁｬﾝ を接続・設定します。", style: TextStyle(fontSize: 20)),
-              leading: const Icon(Icons.settings, size: 32),
-              onTap: () => {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                  return const SettingsPage();
-                }))
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );

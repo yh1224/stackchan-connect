@@ -14,10 +14,14 @@ class StackchanIpAddressSettingsPage extends StatefulWidget {
 }
 
 class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSettingsPage> {
-  final stackchanIpAddressTextArea = TextEditingController();
+  /// 設定更新中
+  bool updating = false;
 
-  String errorMessage = '';
-  bool isLoading = false;
+  /// ステータスメッセージ
+  String statusMessage = "";
+
+  /// IP アドレス入力
+  final stackchanIpAddressTextArea = TextEditingController();
 
   @override
   void initState() {
@@ -34,12 +38,12 @@ class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSetti
 
   void restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    stackchanIpAddressTextArea.text = prefs.getString('stackchanIpAddress') ?? '';
+    stackchanIpAddressTextArea.text = prefs.getString("stackchanIpAddress") ?? "";
   }
 
   void onUpdate() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('stackchanIpAddress', stackchanIpAddressTextArea.text);
+    await prefs.setString("stackchanIpAddress", stackchanIpAddressTextArea.text);
   }
 
   void test() async {
@@ -49,21 +53,21 @@ class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSetti
     }
 
     setState(() {
-      isLoading = true;
-      errorMessage = '';
+      updating = true;
+      statusMessage = "";
     });
     try {
       await Stackchan(stackchanIpAddress).speech("接続できました");
       setState(() {
-        errorMessage = '接続できました';
+        statusMessage = "接続できました";
       });
     } catch (e) {
       setState(() {
-        errorMessage = 'Error: ${e.toString()}';
+        statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        isLoading = false;
+        updating = false;
       });
     }
   }
@@ -84,86 +88,103 @@ class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSetti
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
+        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "ｽﾀｯｸﾁｬﾝの IP アドレスを入力してください",
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    TextField(
-                      controller: stackchanIpAddressTextArea,
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    Visibility(
-                      visible: canSmartConfig(),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "SmartConfig に対応している場合は、以下から自動設定できます。",
-                            style: TextStyle(fontSize: 20),
+                            "ｽﾀｯｸﾁｬﾝの IP アドレスを入力してください。",
                           ),
-                          ElevatedButton(
-                            onPressed: startSmartConfig,
-                            child: const Text(
-                              'SmartConfig で設定する',
-                              style: TextStyle(fontSize: 20),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              controller: stackchanIpAddressTextArea,
+                              decoration: const InputDecoration(
+                                hintText: "IP アドレス",
+                              ),
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 20.0),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Visibility(
+                        visible: canSmartConfig(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "SmartConfig に対応している場合は、以下から自動設定することもできます。",
+                            ),
+                            ElevatedButton(
+                              onPressed: startSmartConfig,
+                              child: const Text(
+                                "SmartConfig で設定する",
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  errorMessage,
-                  style: const TextStyle(fontSize: 20),
-                ),
-                Visibility(
-                  visible: isLoading,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: LinearProgressIndicator(),
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Visibility(
+                    visible: statusMessage.isNotEmpty,
+                    child: Text(
+                      statusMessage,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ValueListenableBuilder(
-                    valueListenable: stackchanIpAddressTextArea,
-                    builder: (context, value, child) {
-                      return ElevatedButton(
-                        onPressed: stackchanIpAddressTextArea.text.isEmpty || isLoading ? null : test,
-                        child: const Text(
-                          '確認',
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      );
-                    },
+                  Visibility(
+                    visible: updating,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: LinearProgressIndicator(),
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: ValueListenableBuilder(
+                      valueListenable: stackchanIpAddressTextArea,
+                      builder: (context, value, child) {
+                        return ElevatedButton(
+                          onPressed: stackchanIpAddressTextArea.text.isEmpty || updating ? null : test,
+                          child: Text(
+                            "確認",
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

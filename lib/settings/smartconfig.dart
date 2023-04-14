@@ -11,15 +11,29 @@ class SmartConfigPage extends StatefulWidget {
 }
 
 class _SmartConfigPageState extends State<SmartConfigPage> {
-  Provisioner? provisioner;
-  final wifiPassphraseTextArea = TextEditingController();
+  /// ステータスメッセージ
+  String statusMessage = "";
 
-  bool isProvisioning = false;
-  bool isDone = false;
+  /// SmartConfig Provisioner
+  Provisioner? provisioner;
+
+  /// Provision 実行中
+  bool provisioning = false;
+
+  /// Provision 完了
+  bool provisionComplete = false;
+
+  /// 接続中の SSID
   String? wifiSsid;
+
+  /// 接続中の BSSID
   String? wifiBssid;
-  bool isObscure = true;
-  String message = '';
+
+  /// Wi-Fi パスワード入力
+  final wifiPassphraseTextArea = TextEditingController();
+  bool isWifiPassphraseObscure = true;
+
+  /// IP アドレス取得結果
   String? resultIpAddress;
 
   @override
@@ -57,8 +71,8 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
   void startProvision() async {
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
-      message = '設定をおこなっています...\n電源を入れてしばらくお待ち下さい。';
-      isProvisioning = true;
+      statusMessage = "設定をおこなっています...\n電源を入れてしばらくお待ち下さい。";
+      provisioning = true;
     });
     try {
       provisioner = Provisioner.espTouch();
@@ -66,17 +80,17 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
         debugPrint("Device ${response.bssidText} connected to WiFi!");
         setState(() {
           provisioner?.stop();
-          isProvisioning = false;
+          provisioning = false;
         });
         if (response.ipAddressText != null) {
           setState(() {
-            message = "${response.ipAddressText} が接続されました。";
+            statusMessage = "${response.ipAddressText} が接続されました。";
             resultIpAddress = response.ipAddressText;
           });
         }
       }, onError: (e) {
         setState(() {
-          message = "エラー\n${e.toString()}";
+          statusMessage = "エラー\n${e.toString()}";
         });
       }, onDone: () {
         debugPrint("Done");
@@ -88,8 +102,8 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
       ));
     } catch (e) {
       setState(() {
-        message = "処理が開始できませんでした。\n${e.toString()}";
-        isProvisioning = false;
+        statusMessage = "処理が開始できませんでした。\n${e.toString()}";
+        provisioning = false;
       });
     }
   }
@@ -97,8 +111,8 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
   void stopProvision() {
     provisioner?.stop();
     setState(() {
-      message = '';
-      isProvisioning = false;
+      statusMessage = "";
+      provisioning = false;
     });
   }
 
@@ -118,7 +132,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SmartConfig'),
+        title: const Text("SmartConfig"),
       ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -137,9 +151,8 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                       const Text(
                         "SmartConfig による自動設定に対応した ｽﾀｯｸﾁｬﾝ を Wi-Fi ネットワークに接続します。このスマートフォンが 2.4GHz 帯の Wi-Fi アクセスポイントに接続されている必要があります。",
                         textAlign: TextAlign.left,
-                        style: TextStyle(fontSize: 16),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 20.0),
                       Visibility(
                         visible: isWifiConnected(),
                         child: Column(
@@ -148,37 +161,78 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "SSID: $wifiSsid",
-                                  textAlign: TextAlign.left,
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                                Text(
-                                  "BSSID: $wifiBssid",
-                                  textAlign: TextAlign.left,
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                                TextFormField(
-                                  obscureText: isObscure,
-                                  readOnly: isProvisioning,
-                                  decoration: InputDecoration(
-                                    labelText: "パスフレーズ",
-                                    suffixIcon: IconButton(
-                                      icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility),
-                                      onPressed: () {
-                                        setState(() {
-                                          isObscure = !isObscure;
-                                        });
-                                      },
-                                    ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        "SSID: ",
+                                        textAlign: TextAlign.left,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        "$wifiSsid",
+                                        textAlign: TextAlign.left,
+                                        style: Theme.of(context).textTheme.bodyLarge,
+                                      ),
+                                    ],
                                   ),
-                                  controller: wifiPassphraseTextArea,
-                                  style: const TextStyle(fontSize: 20),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        "BSSID: ",
+                                        textAlign: TextAlign.left,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .copyWith(fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        "$wifiBssid",
+                                        textAlign: TextAlign.left,
+                                        style: Theme.of(context).textTheme.bodyLarge,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  child: TextFormField(
+                                    obscureText: isWifiPassphraseObscure,
+                                    readOnly: provisioning,
+                                    decoration: InputDecoration(
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8.0),
+                                      ),
+                                      labelText: "パスフレーズ",
+                                      suffixIcon: IconButton(
+                                        icon: Icon(isWifiPassphraseObscure ? Icons.visibility_off : Icons.visibility),
+                                        onPressed: () {
+                                          setState(() {
+                                            isWifiPassphraseObscure = !isWifiPassphraseObscure;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    controller: wifiPassphraseTextArea,
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                  ),
                                 ),
                               ],
                             ),
                           ],
                         ),
+                      ),
+                      const SizedBox(height: 20.0),
+                      const Text(
+                        "Wi-Fi アクセスポイントのパスフレーズを入力して、「設定開始」を押してください。",
+                        textAlign: TextAlign.left,
                       ),
                     ],
                   ),
@@ -186,7 +240,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
               ),
             ),
             Visibility(
-              visible: isProvisioning,
+              visible: provisioning,
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -200,43 +254,53 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                 ),
               ),
             ),
-            Padding(
+            Container(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                message,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-            Visibility(
-              visible: resultIpAddress == null,
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                width: double.infinity,
-                child: ValueListenableBuilder(
-                  valueListenable: wifiPassphraseTextArea,
-                  builder: (context, value, child) {
-                    return ElevatedButton(
-                      onPressed: canProvision() ? (isProvisioning ? stopProvision : startProvision) : null,
-                      child: Text(
-                        isProvisioning ? 'キャンセル' : '設定開始',
-                        style: const TextStyle(fontSize: 20),
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Visibility(
+                    visible: statusMessage.isNotEmpty,
+                    child: Text(
+                      statusMessage,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                  Visibility(
+                    visible: resultIpAddress == null,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ValueListenableBuilder(
+                        valueListenable: wifiPassphraseTextArea,
+                        builder: (context, value, child) {
+                          return ElevatedButton(
+                            onPressed: canProvision() ? (provisioning ? stopProvision : startProvision) : null,
+                            child: Text(
+                              provisioning ? "キャンセル" : "設定開始",
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: resultIpAddress != null,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: close,
+                        child: Text(
+                          "OK",
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
-            Visibility(
-              visible: resultIpAddress != null,
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: close,
-                  child: const Text("OK", style: TextStyle(fontSize: 20)),
-                ),
-              ),
-            )
           ],
         ),
       ),

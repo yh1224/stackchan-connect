@@ -15,7 +15,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String stackchanIpAddress = '';
+  String stackchanIpAddress = "";
 
   @override
   void initState() {
@@ -26,7 +26,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void init() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      stackchanIpAddress = prefs.getString('stackchanIpAddress') ?? '';
+      stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
     });
   }
 
@@ -56,32 +56,47 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ'),
+        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
       ),
-      body: Column(
-        children: [
-          ListTile(
-            title: const Text("IP アドレス設定", style: TextStyle(fontSize: 20)),
-            subtitle: Text(stackchanIpAddress),
-            onTap: openStackchanIpAddressSettings,
+      body: GestureDetector(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Card(
+                child: ListTile(
+                  title: Text("IP アドレス設定", style: Theme.of(context).textTheme.titleLarge),
+                  subtitle: Text(stackchanIpAddress),
+                  onTap: openStackchanIpAddressSettings,
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  title: Text("API Key 設定", style: Theme.of(context).textTheme.titleLarge),
+                  onTap: openStackchanApiKeysSettings,
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  title: Text("ロール設定", style: Theme.of(context).textTheme.titleLarge),
+                  onTap: openStackchanRoleSettings,
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
+                  onTap: openStackchanSettings,
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  title: Text("表情設定", style: Theme.of(context).textTheme.titleLarge),
+                  onTap: openStackchanFaceSettings,
+                ),
+              ),
+            ],
           ),
-          ListTile(
-            title: const Text("API Key 設定", style: TextStyle(fontSize: 20)),
-            onTap: openStackchanApiKeysSettings,
-          ),
-          ListTile(
-            title: const Text("ロール設定", style: TextStyle(fontSize: 20)),
-            onTap: openStackchanRoleSettings,
-          ),
-          ListTile(
-            title: const Text("音量設定", style: TextStyle(fontSize: 20)),
-            onTap: openStackchanSettings,
-          ),
-          ListTile(
-            title: const Text("表情設定", style: TextStyle(fontSize: 20)),
-            onTap: openStackchanFaceSettings,
-          ),
-        ],
+        ),
       ),
     );
   }
