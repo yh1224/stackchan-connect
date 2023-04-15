@@ -75,9 +75,6 @@ class _ChatPageState extends State<ChatPage> {
   /// メッセージ履歴
   List<ChatMessage> messages = [];
 
-  /// 選択中のモード
-  String mode = "chat";
-
   /// 選択中の声色
   String voice = "1";
 
@@ -201,16 +198,9 @@ class _ChatPageState extends State<ChatPage> {
         updating = true;
       });
       final stackchan = Stackchan(widget.stackchanIpAddress);
-      String reply;
-      if (mode == "chat") {
-        appendMessage(ChatMessage.kindRequest, request);
-        reply = await stackchan.chat(request, voice: voice);
-        appendMessage(ChatMessage.kindReply, reply);
-      } else {
-        // echo
-        reply = await stackchan.speech(request, voice: voice);
-        appendMessage(ChatMessage.kindReply, request);
-      }
+      appendMessage(ChatMessage.kindRequest, request);
+      final reply = await stackchan.chat(request, voice: voice);
+      appendMessage(ChatMessage.kindReply, reply);
     } catch (e) {
       appendMessage(ChatMessage.kindError, "Error: ${e.toString()}");
     } finally {
@@ -302,30 +292,6 @@ class _ChatPageState extends State<ChatPage> {
                   width: double.infinity,
                   child: Row(
                     children: [
-                      Expanded(
-                        child: Center(
-                          child: DropdownButton(
-                            items: const [
-                              DropdownMenuItem(
-                                value: "speech",
-                                child: Text("しゃべって"),
-                              ),
-                              DropdownMenuItem(
-                                value: "chat",
-                                child: Text("会話する"),
-                              ),
-                            ],
-                            onChanged: (String? value) {
-                              setState(() {
-                                if (value != null) {
-                                  mode = value;
-                                }
-                              });
-                            },
-                            value: mode,
-                          ),
-                        ),
-                      ),
                       Expanded(
                         child: Center(
                           child: DropdownButton(
