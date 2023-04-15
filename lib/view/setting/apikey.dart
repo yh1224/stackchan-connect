@@ -138,15 +138,11 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: "ｽﾀｯｸﾁｬﾝ が ChatGPT を頭脳として使うために、",
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              TextSpan(
                                 text: "OpenAI",
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    launchUrl(Uri.parse("https://platform.openai.com"));
+                                    launchUrl(Uri.parse("https://platform.openai.com"), mode: LaunchMode.externalApplication);
                                   },
                               ),
                               TextSpan(
@@ -180,7 +176,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: "ｽﾀｯｸﾁｬﾝ が人間の声を話すために、音声合成エンジン ",
+                                text: "音声合成エンジン ",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               TextSpan(
@@ -188,7 +184,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    launchUrl(Uri.parse("https://cloud.voicetext.jp/webapi"));
+                                    launchUrl(Uri.parse("https://cloud.voicetext.jp"), mode: LaunchMode.externalApplication);
                                   },
                               ),
                               TextSpan(
@@ -203,7 +199,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                           child: TextFormField(
                             obscureText: isVoicetextApiKeyObscure,
                             decoration: InputDecoration(
-                              labelText: "VOICETEXT API Key",
+                              labelText: "VoiceText API Key",
                               suffixIcon: IconButton(
                                 icon: Icon(isVoicetextApiKeyObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {

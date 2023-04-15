@@ -380,7 +380,6 @@ class _ChatPageState extends State<ChatPage> {
                             controller: textArea,
                             keyboardType: TextInputType.multiline,
                             maxLines: null,
-                            style: const TextStyle(fontSize: 20),
                           ),
                         ),
                       ),

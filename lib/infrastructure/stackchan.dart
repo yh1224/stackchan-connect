@@ -129,10 +129,10 @@ class Stackchan {
 
   /// Speech API
   Future<String> speech(String say, {String? voice}) async {
-    final params = {
-      "say": say,
-      "voice": voice,
-    };
+    final params = {"say": say};
+    if (voice != null) {
+      params["voice"] = voice;
+    }
     final res = await httpClient.post(Uri.http(stackchanIpAddress, "/speech"), body: params);
     debugPrint("POST /speech ${jsonEncode(params)} : ${res.statusCode}");
     if (res.statusCode != 200) {
@@ -143,10 +143,10 @@ class Stackchan {
 
   /// Chat API
   Future<String> chat(String text, {String? voice}) async {
-    final params = {
-      "text": text,
-      "voice": voice,
-    };
+    final params = {"text": text};
+    if (voice != null) {
+      params["voice"] = voice;
+    }
     final res = await httpClient.post(Uri.http(stackchanIpAddress, "/chat"), body: params);
     debugPrint("POST /chat ${jsonEncode(params)} : ${res.statusCode}");
     if (res.statusCode != 200) {

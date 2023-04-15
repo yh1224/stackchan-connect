@@ -157,9 +157,9 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: initialized ? updateVolume : null,
-                      child: const Text(
+                      child: Text(
                         "設定",
-                        style: TextStyle(fontSize: 20),
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ),
                   ),

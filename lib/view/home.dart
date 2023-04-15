@@ -4,6 +4,7 @@ import 'package:url_launcher/link.dart';
 
 import 'control/chat.dart';
 import 'control/face.dart';
+import 'control/speech.dart';
 import 'setting/menu.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -91,10 +92,21 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: ListTile(
                             title: Text("おしゃべり", style: Theme.of(context).textTheme.titleLarge),
                             subtitle: Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: Theme.of(context).textTheme.titleMedium),
-                            leading: const Icon(Icons.speaker_notes, size: 48),
+                            leading: const Icon(Icons.message, size: 48),
                             onTap: () {
                               Navigator.of(context)
                                   .push(MaterialPageRoute(builder: (context) => ChatPage(stackchanIpAddress)));
+                            },
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("しゃべって", style: Theme.of(context).textTheme.titleLarge),
+                            subtitle: Text("ｽﾀｯｸﾁｬﾝ にしゃべってもらいます。", style: Theme.of(context).textTheme.titleMedium),
+                            leading: const Icon(Icons.volume_up, size: 48),
+                            onTap: () {
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (context) => SpeechPage(stackchanIpAddress)));
                             },
                           ),
                         ),
