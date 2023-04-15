@@ -65,13 +65,16 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
   void updateVolume() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt("volume", volume);
+    final voice = prefs.getString("voice");
 
     setState(() {
       updating = true;
       statusMessage = "";
     });
     try {
-      await Stackchan(widget.stackchanIpAddress).setting(volume: "$volume");
+      final stackchan = Stackchan(widget.stackchanIpAddress);
+      await stackchan.setting(volume: "$volume");
+      await stackchan.speech("音量を$volumeに設定しました。", voice: voice);
       setState(() {
         statusMessage = "設定しました。";
       });
