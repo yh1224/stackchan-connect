@@ -62,20 +62,12 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
 
   // check existence of apikey setting page
   void checkStackchan() async {
-    final stackchanIpAddress = widget.stackchanIpAddress;
-    if (stackchanIpAddress.isEmpty) {
-      setState(() {
-        statusMessage = "IP アドレスを設定してください。";
-      });
-      return;
-    }
-
     setState(() {
       updating = true;
       statusMessage = "";
     });
     try {
-      if (await Stackchan(stackchanIpAddress).hasApiKeysApi()) {
+      if (await Stackchan(widget.stackchanIpAddress).hasApiKeysApi()) {
         setState(() {
           initialized = true;
         });

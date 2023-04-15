@@ -29,20 +29,12 @@ class _FacePageState extends State<FacePage> {
 
   // check existence of apikey setting page
   void checkStackchan() async {
-    final stackchanIpAddress = widget.stackchanIpAddress;
-    if (stackchanIpAddress.isEmpty) {
-      setState(() {
-        statusMessage = "IP アドレスを設定してください。";
-      });
-      return;
-    }
-
     setState(() {
       updating = true;
       statusMessage = "";
     });
     try {
-      if (await Stackchan(stackchanIpAddress).hasFaceApi()) {
+      if (await Stackchan(widget.stackchanIpAddress).hasFaceApi()) {
         setState(() {
           initialized = true;
         });

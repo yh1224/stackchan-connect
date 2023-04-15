@@ -45,20 +45,12 @@ class _SettingRolePageState extends State<SettingRolePage> {
 
   // check existence of apikey setting page
   void getRole() async {
-    final stackchanIpAddress = widget.stackchanIpAddress;
-    if (stackchanIpAddress.isEmpty) {
-      setState(() {
-        statusMessage = "IP アドレスを設定してください。";
-      });
-      return;
-    }
-
     setState(() {
       updating = true;
       statusMessage = "";
     });
     try {
-      final roles = await Stackchan(stackchanIpAddress).getRoles();
+      final roles = await Stackchan(widget.stackchanIpAddress).getRoles();
       for (var i = 0; i < min(roleTextAreas.length, roles.length); i++) {
         roleTextAreas[i].text = roles[i];
       }
