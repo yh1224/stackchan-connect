@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../infrastructure/stackchan.dart';
 
-class SettingFacePage extends StatefulWidget {
-  const SettingFacePage(this.stackchanIpAddress, {super.key});
+class FacePage extends StatefulWidget {
+  const FacePage(this.stackchanIpAddress, {super.key});
 
   final String stackchanIpAddress;
 
   @override
-  State<SettingFacePage> createState() => _SettingFacePageState();
+  State<FacePage> createState() => _FacePageState();
 }
 
-class _SettingFacePageState extends State<SettingFacePage> {
+class _FacePageState extends State<FacePage> {
   /// 初期化完了
   bool initialized = false;
 
@@ -65,9 +65,6 @@ class _SettingFacePageState extends State<SettingFacePage> {
     });
     try {
       await Stackchan(widget.stackchanIpAddress).face("$value");
-      setState(() {
-        statusMessage = "設定しました。";
-      });
     } catch (e) {
       setState(() {
         statusMessage = "Error: ${e.toString()}";

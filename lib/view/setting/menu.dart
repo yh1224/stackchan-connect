@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'apikey.dart';
-import 'face.dart';
 import 'ipaddress.dart';
 import 'role.dart';
 import 'stackchan.dart';
@@ -94,15 +93,6 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                           onTap: () {
                             Navigator.of(context).push(
                                 MaterialPageRoute(builder: (context) => SettingStackchanPage(stackchanIpAddress)));
-                          },
-                        ),
-                      ),
-                      Card(
-                        child: ListTile(
-                          title: Text("表情設定", style: Theme.of(context).textTheme.titleLarge),
-                          onTap: () {
-                            Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (context) => SettingFacePage(stackchanIpAddress)));
                           },
                         ),
                       ),

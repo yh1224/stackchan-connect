@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/link.dart';
 
 import 'control/chat.dart';
+import 'control/face.dart';
 import 'setting/menu.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -84,15 +85,30 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Visibility(
                     visible: stackchanIpAddress.isNotEmpty,
-                    child: Card(
-                      child: ListTile(
-                        title: Text("おしゃべり", style: Theme.of(context).textTheme.titleLarge),
-                        subtitle: Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: Theme.of(context).textTheme.titleMedium),
-                        leading: const Icon(Icons.speaker_notes, size: 48),
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ChatPage()));
-                        },
-                      ),
+                    child: Column(
+                      children: [
+                        Card(
+                          child: ListTile(
+                            title: Text("おしゃべり", style: Theme.of(context).textTheme.titleLarge),
+                            subtitle: Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: Theme.of(context).textTheme.titleMedium),
+                            leading: const Icon(Icons.speaker_notes, size: 48),
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ChatPage()));
+                            },
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("表情変更", style: Theme.of(context).textTheme.titleLarge),
+                            subtitle: Text("ｽﾀｯｸﾁｬﾝ の表情を変えます。", style: Theme.of(context).textTheme.titleMedium),
+                            leading: const Icon(Icons.face, size: 48),
+                            onTap: () {
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (context) => FacePage(stackchanIpAddress)));
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Card(
