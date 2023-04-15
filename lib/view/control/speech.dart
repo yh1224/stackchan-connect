@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infrastructure/stackchan.dart';
 import '../../repository/speech.dart';
@@ -33,9 +34,6 @@ class _SpeechPageState extends State<SpeechPage> {
 
   /// メッセージ入力
   final textArea = TextEditingController();
-
-  /// 声質
-  String? voice;
 
   @override
   void initState() {
@@ -82,6 +80,8 @@ class _SpeechPageState extends State<SpeechPage> {
     if (append) {
       appendMessage(message);
     }
+    var prefs = await SharedPreferences.getInstance();
+    final voice = prefs.getString("voice");
     setState(() {
       statusMessage = "";
       updating = true;

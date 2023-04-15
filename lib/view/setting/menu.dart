@@ -5,6 +5,7 @@ import 'apikey.dart';
 import 'ipaddress.dart';
 import 'role.dart';
 import 'stackchan.dart';
+import 'voice.dart';
 
 class SettingMenuPage extends StatefulWidget {
   const SettingMenuPage({super.key});
@@ -93,6 +94,15 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                           onTap: () {
                             Navigator.of(context).push(
                                 MaterialPageRoute(builder: (context) => SettingStackchanPage(stackchanIpAddress)));
+                          },
+                        ),
+                      ),
+                      Card(
+                        child: ListTile(
+                          title: Text("声色設定", style: Theme.of(context).textTheme.titleLarge),
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (context) => SettingVoicePage(stackchanIpAddress)));
                           },
                         ),
                       ),

@@ -75,9 +75,6 @@ class _ChatPageState extends State<ChatPage> {
   /// メッセージ履歴
   List<ChatMessage> messages = [];
 
-  /// 選択中の声色
-  String voice = "1";
-
   /// メッセージ入力
   final textArea = TextEditingController();
 
@@ -191,6 +188,7 @@ class _ChatPageState extends State<ChatPage> {
   void callStackchan() async {
     await stopListening();
     var prefs = await SharedPreferences.getInstance();
+    final voice = prefs.getString("voice");
     try {
       final request = textArea.text.trim();
       setState(() {
@@ -288,49 +286,6 @@ class _ChatPageState extends State<ChatPage> {
             ),
             Column(
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Center(
-                          child: DropdownButton(
-                            items: const [
-                              DropdownMenuItem(
-                                value: "0",
-                                child: Text("声: 0"),
-                              ),
-                              DropdownMenuItem(
-                                value: "1",
-                                child: Text("声: 1"),
-                              ),
-                              DropdownMenuItem(
-                                value: "2",
-                                child: Text("声: 2"),
-                              ),
-                              DropdownMenuItem(
-                                value: "3",
-                                child: Text("声: 3"),
-                              ),
-                              DropdownMenuItem(
-                                value: "4",
-                                child: Text("声: 4"),
-                              ),
-                            ],
-                            onChanged: (String? value) {
-                              setState(() {
-                                if (value != null) {
-                                  voice = value;
-                                }
-                              });
-                            },
-                            value: voice,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
