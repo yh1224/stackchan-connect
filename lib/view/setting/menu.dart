@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'settings/apikeys.dart';
-import 'settings/face.dart';
-import 'settings/ipaddress.dart';
-import 'settings/role.dart';
-import 'settings/stackchan.dart';
+import 'apikey.dart';
+import 'face.dart';
+import 'ipaddress.dart';
+import 'role.dart';
+import 'stackchan.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+class SettingMenuPage extends StatefulWidget {
+  const SettingMenuPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  State<SettingMenuPage> createState() => _SettingMenuPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingMenuPageState extends State<SettingMenuPage> {
   String stackchanIpAddress = "";
 
   @override
@@ -28,28 +28,6 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
     });
-  }
-
-  void openStackchanIpAddressSettings() async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const StackchanIpAddressSettingsPage()));
-    init();
-  }
-
-  void openStackchanApiKeysSettings() {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => StackchanApiKeysSettingsPage(stackchanIpAddress)));
-  }
-
-  void openStackchanSettings() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => StackchanSettingsPage(stackchanIpAddress)));
-  }
-
-  void openStackchanFaceSettings() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => StackchanFaceSettingsPage(stackchanIpAddress)));
-  }
-
-  void openStackchanRoleSettings() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => StackchanRoleSettingsPage(stackchanIpAddress)));
   }
 
   @override
@@ -67,31 +45,47 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ListTile(
                   title: Text("IP アドレス設定", style: Theme.of(context).textTheme.titleLarge),
                   subtitle: Text(stackchanIpAddress),
-                  onTap: openStackchanIpAddressSettings,
+                  onTap: () async {
+                    await Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) => const SettingIpAddressPage()));
+                    init();
+                  },
                 ),
               ),
               Card(
                 child: ListTile(
                   title: Text("API Key 設定", style: Theme.of(context).textTheme.titleLarge),
-                  onTap: openStackchanApiKeysSettings,
+                  onTap: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(stackchanIpAddress)));
+                  },
                 ),
               ),
               Card(
                 child: ListTile(
                   title: Text("ロール設定", style: Theme.of(context).textTheme.titleLarge),
-                  onTap: openStackchanRoleSettings,
+                  onTap: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) => SettingRolePage(stackchanIpAddress)));
+                  },
                 ),
               ),
               Card(
                 child: ListTile(
                   title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
-                  onTap: openStackchanSettings,
+                  onTap: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) => SettingStackchanPage(stackchanIpAddress)));
+                  },
                 ),
               ),
               Card(
                 child: ListTile(
                   title: Text("表情設定", style: Theme.of(context).textTheme.titleLarge),
-                  onTap: openStackchanFaceSettings,
+                  onTap: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) => SettingFacePage(stackchanIpAddress)));
+                  },
                 ),
               ),
             ],

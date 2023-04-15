@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-class Message {
+class ChatMessage {
   static const String kindRequest = "request";
   static const String kindReply = "reply";
   static const String kindError = "error";
@@ -10,10 +10,10 @@ class Message {
   String kind;
   String text;
 
-  Message({this.id, required this.createdAt, required this.kind, required this.text});
+  ChatMessage({this.id, required this.createdAt, required this.kind, required this.text});
 }
 
-class MessageRepository {
+class ChatRepository {
   static const String dbFileName = "messages.db";
   static const String tableName = "messages";
 
@@ -29,10 +29,10 @@ class MessageRepository {
     );
   }
 
-  Future<List<Message>> getMessages(int limit) async {
+  Future<List<ChatMessage>> getMessages(int limit) async {
     final messages = await (await db).query(tableName, orderBy: "created_at", limit: limit);
     return List.generate(messages.length, (i) {
-      return Message(
+      return ChatMessage(
         id: messages[i]["id"] as int,
         createdAt: DateTime.parse(messages[i]["created_at"] as String),
         kind: messages[i]["kind"] as String,
@@ -41,7 +41,7 @@ class MessageRepository {
     });
   }
 
-  void append(Message message) async {
+  void append(ChatMessage message) async {
     await (await db).insert(tableName, {
       "created_at": message.createdAt.toUtc().toIso8601String(),
       "kind": message.kind,

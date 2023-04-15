@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../control.dart';
+import '../../infrastructure/stackchan.dart';
 
-class StackchanApiKeysSettingsPage extends StatefulWidget {
-  const StackchanApiKeysSettingsPage(this.stackchanIpAddress, {super.key});
+class SettingApiKeyPage extends StatefulWidget {
+  const SettingApiKeyPage(this.stackchanIpAddress, {super.key});
 
   final String stackchanIpAddress;
 
   @override
-  State<StackchanApiKeysSettingsPage> createState() => _StackchanApiKeysSettingsPageState();
+  State<SettingApiKeyPage> createState() => _SettingApiKeyPageState();
 }
 
-class _StackchanApiKeysSettingsPageState extends State<StackchanApiKeysSettingsPage> {
+class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
   /// 初期化完了
   bool initialized = false;
 

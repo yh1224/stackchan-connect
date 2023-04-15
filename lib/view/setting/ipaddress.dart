@@ -3,17 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../control.dart';
+import '../../infrastructure/stackchan.dart';
 import 'smartconfig.dart';
 
-class StackchanIpAddressSettingsPage extends StatefulWidget {
-  const StackchanIpAddressSettingsPage({super.key});
+class SettingIpAddressPage extends StatefulWidget {
+  const SettingIpAddressPage({super.key});
 
   @override
-  State<StackchanIpAddressSettingsPage> createState() => _StackchanIpAddressSettingsPageState();
+  State<SettingIpAddressPage> createState() => _SettingIpAddressPageState();
 }
 
-class _StackchanIpAddressSettingsPageState extends State<StackchanIpAddressSettingsPage> {
+class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
   /// 設定更新中
   bool updating = false;
 

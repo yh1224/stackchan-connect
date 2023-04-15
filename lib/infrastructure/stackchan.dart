@@ -128,7 +128,7 @@ class Stackchan {
   }
 
   /// Speech API
-  Future<String> speech(String say, {String voice = "1"}) async {
+  Future<String> speech(String say, {String? voice}) async {
     final params = {
       "say": say,
       "voice": voice,
@@ -142,7 +142,7 @@ class Stackchan {
   }
 
   /// Chat API
-  Future<String> chat(String text, {String voice = "1"}) async {
+  Future<String> chat(String text, {String? voice}) async {
     final params = {
       "text": text,
       "voice": voice,

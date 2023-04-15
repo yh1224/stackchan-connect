@@ -2,18 +2,18 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../control.dart';
+import '../../infrastructure/stackchan.dart';
 
-class StackchanRoleSettingsPage extends StatefulWidget {
-  const StackchanRoleSettingsPage(this.stackchanIpAddress, {super.key});
+class SettingRolePage extends StatefulWidget {
+  const SettingRolePage(this.stackchanIpAddress, {super.key});
 
   final String stackchanIpAddress;
 
   @override
-  State<StackchanRoleSettingsPage> createState() => _StackchanRoleSettingsPageState();
+  State<SettingRolePage> createState() => _SettingRolePageState();
 }
 
-class _StackchanRoleSettingsPageState extends State<StackchanRoleSettingsPage> {
+class _SettingRolePageState extends State<SettingRolePage> {
   /// ロール設定可能数  TODO: とりあえず固定
   static const maxRoleCount = 5;
 

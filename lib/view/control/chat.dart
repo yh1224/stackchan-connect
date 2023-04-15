@@ -6,8 +6,8 @@ import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-import 'control.dart';
-import 'messages.dart';
+import '../../infrastructure/stackchan.dart';
+import '../../repository/chat.dart';
 
 class ChatBubble extends StatelessWidget {
   const ChatBubble({
@@ -47,14 +47,14 @@ class ChatBubble extends StatelessWidget {
   }
 }
 
-class SpeechPage extends StatefulWidget {
-  const SpeechPage({super.key});
+class ChatPage extends StatefulWidget {
+  const ChatPage({super.key});
 
   @override
-  State<SpeechPage> createState() => _SpeechPageState();
+  State<ChatPage> createState() => _ChatPageState();
 }
 
-class _SpeechPageState extends State<SpeechPage> {
+class _ChatPageState extends State<ChatPage> {
   /// メッセージ表示最大数
   static const int maxMessages = 100;
 
@@ -68,10 +68,10 @@ class _SpeechPageState extends State<SpeechPage> {
   String listeningStatus = "";
 
   /// メッセージリポジトリ
-  final messageRepository = MessageRepository();
+  final messageRepository = ChatRepository();
 
   /// メッセージ履歴
-  List<Message> messages = [];
+  List<ChatMessage> messages = [];
 
   /// 選択中のモード
   String mode = "chat";
@@ -112,7 +112,7 @@ class _SpeechPageState extends State<SpeechPage> {
   }
 
   void appendMessage(String kind, String text) async {
-    final message = Message(createdAt: DateTime.now(), kind: kind, text: text);
+    final message = ChatMessage(createdAt: DateTime.now(), kind: kind, text: text);
     messageRepository.append(message);
     setState(() {
       messages.add(message);
@@ -203,19 +203,19 @@ class _SpeechPageState extends State<SpeechPage> {
         final stackchan = Stackchan(stackchanIpAddress);
         String reply;
         if (mode == "chat") {
-          appendMessage(Message.kindRequest, request);
+          appendMessage(ChatMessage.kindRequest, request);
           reply = await stackchan.chat(request, voice: voice);
-          appendMessage(Message.kindReply, reply);
+          appendMessage(ChatMessage.kindReply, reply);
         } else {
           // echo
           reply = await stackchan.speech(request, voice: voice);
-          appendMessage(Message.kindReply, request);
+          appendMessage(ChatMessage.kindReply, request);
         }
       } else {
-        appendMessage(Message.kindError, "ｽﾀｯｸﾁｬﾝ の IP アドレスが設定されていません");
+        appendMessage(ChatMessage.kindError, "ｽﾀｯｸﾁｬﾝ の IP アドレスが設定されていません");
       }
     } catch (e) {
-      appendMessage(Message.kindError, "Error: ${e.toString()}");
+      appendMessage(ChatMessage.kindError, "Error: ${e.toString()}");
     } finally {
       setState(() {
         updating = false;
@@ -269,7 +269,7 @@ class _SpeechPageState extends State<SpeechPage> {
                       padding: const EdgeInsets.all(8.0),
                       reverse: true,
                       children: messages.reversed
-                          .map((r) => r.kind == Message.kindError
+                          .map((r) => r.kind == ChatMessage.kindError
                               ? Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
@@ -280,7 +280,7 @@ class _SpeechPageState extends State<SpeechPage> {
                               : ChatBubble(
                                   dateTime: r.createdAt,
                                   text: r.text,
-                                  me: r.kind == Message.kindRequest,
+                                  me: r.kind == ChatMessage.kindRequest,
                                 ))
                           .toList(),
                     ),
@@ -351,7 +351,7 @@ class _SpeechPageState extends State<SpeechPage> {
                               ),
                               DropdownMenuItem(
                                 value: "4",
-                                child: Text("声: 5"),
+                                child: Text("声: 4"),
                               ),
                             ],
                             onChanged: (String? value) {

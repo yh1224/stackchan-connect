@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../control.dart';
+import '../../infrastructure/stackchan.dart';
 
-class StackchanFaceSettingsPage extends StatefulWidget {
-  const StackchanFaceSettingsPage(this.stackchanIpAddress, {super.key});
+class SettingFacePage extends StatefulWidget {
+  const SettingFacePage(this.stackchanIpAddress, {super.key});
 
   final String stackchanIpAddress;
 
   @override
-  State<StackchanFaceSettingsPage> createState() => _StackchanFaceSettingsPageState();
+  State<SettingFacePage> createState() => _SettingFacePageState();
 }
 
-class _StackchanFaceSettingsPageState extends State<StackchanFaceSettingsPage> {
+class _SettingFacePageState extends State<SettingFacePage> {
   /// 初期化完了
   bool initialized = false;
 
