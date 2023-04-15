@@ -4,16 +4,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart';
 import 'package:http/retry.dart';
 
-class UnexpectedResponseError implements Exception {
-  int statusCode;
-  String? message;
+import '../core/stackchan.dart';
 
-  UnexpectedResponseError(this.statusCode, {this.message});
-}
-
-class Stackchan {
-  String stackchanIpAddress;
-  RetryClient httpClient;
+class Stackchan extends StackchanInterface {
+  final String stackchanIpAddress;
+  final RetryClient httpClient;
 
   Stackchan(this.stackchanIpAddress)
       : httpClient = RetryClient(Client(), retries: 2, whenError: (dynamic error, StackTrace stackTrace) {
@@ -22,7 +17,7 @@ class Stackchan {
         });
 
   /// Check existence of API
-  Future<bool> hasApi(String path) async {
+  Future<bool> _hasApi(String path) async {
     try {
       final res = await httpClient.get(Uri.http(stackchanIpAddress, path));
       debugPrint("GET $path : ${res.statusCode}");
@@ -33,27 +28,27 @@ class Stackchan {
     }
   }
 
-  /// Check existence of API Keys API
+  @override
   Future<bool> hasApiKeysApi() async {
-    return hasApi("/apikey");
+    return _hasApi("/apikey");
   }
 
-  /// Check existence of Role API
+  @override
   Future<bool> hasRoleApi() async {
-    return hasApi("/role");
+    return _hasApi("/role");
   }
 
-  /// Check existence of Face API
+  @override
   Future<bool> hasFaceApi() async {
-    return hasApi("/face");
+    return _hasApi("/face");
   }
 
-  /// Check existence of Face API
+  @override
   Future<bool> hasSettingApi() async {
-    return hasApi("/setting");
+    return _hasApi("/setting");
   }
 
-  /// Set API Keys
+  @override
   Future<void> setApiKeys({String? openai, String? voicetext}) async {
     final params = {};
     if (openai != null) {
@@ -69,7 +64,7 @@ class Stackchan {
     }
   }
 
-  /// Get roles
+  @override
   Future<List<String>> getRoles() async {
     final res = await httpClient.get(Uri.http(stackchanIpAddress, "/role_get"));
     debugPrint("GET /role_get : ${res.statusCode}");
@@ -95,7 +90,7 @@ class Stackchan {
     }
   }
 
-  /// Set roles
+  @override
   Future<void> setRoles(List<String> roles) async {
     await deleteRoles();
     for (var role in roles) {
@@ -107,7 +102,7 @@ class Stackchan {
     }
   }
 
-  /// Delete roles
+  @override
   Future<void> deleteRoles() async {
     final res = await httpClient.post(Uri.http(stackchanIpAddress, "/role_set"));
     debugPrint("POST /role_set : ${res.statusCode}");
@@ -116,7 +111,7 @@ class Stackchan {
     }
   }
 
-  String getSpeechResult(Response res) {
+  String _getSpeechResult(Response res) {
     var resultBody = utf8.decode(res.bodyBytes);
     // pick from <body> to </body>
     var si = resultBody.indexOf("<body>");
@@ -127,7 +122,7 @@ class Stackchan {
     return resultBody;
   }
 
-  /// Speech API
+  @override
   Future<String> speech(String say, {String? voice}) async {
     final params = {"say": say};
     if (voice != null) {
@@ -138,10 +133,10 @@ class Stackchan {
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);
     }
-    return getSpeechResult(res);
+    return _getSpeechResult(res);
   }
 
-  /// Chat API
+  @override
   Future<String> chat(String text, {String? voice}) async {
     final params = {"text": text};
     if (voice != null) {
@@ -152,10 +147,10 @@ class Stackchan {
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);
     }
-    return getSpeechResult(res);
+    return _getSpeechResult(res);
   }
 
-  /// Face API
+  @override
   Future<void> face(String expression) async {
     final params = {
       "expression": expression,
@@ -167,7 +162,7 @@ class Stackchan {
     }
   }
 
-  /// Setting API
+  @override
   Future<void> setting({String? volume}) async {
     final params = {};
     if (volume != null) {
