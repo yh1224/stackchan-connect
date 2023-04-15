@@ -1,9 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../infrastructure/openai.dart';
 import '../../infrastructure/stackchan.dart';
+import '../../infrastructure/voicetext.dart';
 
 class SettingApiKeyPage extends StatefulWidget {
   const SettingApiKeyPage(this.stackchanIpAddress, {super.key});
@@ -26,11 +29,11 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
 
   /// OpenAI API Key 入力
   final openaiApiKeyTextArea = TextEditingController();
-  bool isOpenaiApiKeyObscure = true;
+  bool openaiApiKeyIsObscure = true;
 
   /// VoiceText API Key 入力
   final voicetextApiKeyTextArea = TextEditingController();
-  bool isVoicetextApiKeyObscure = true;
+  bool voicetextApiKeyIsObscure = true;
 
   @override
   void initState() {
@@ -83,7 +86,72 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
     }
   }
 
-  void updateApiKeys() async {
+  void showMessageForStatusCode(Response res) {
+    const Map<int, String> statusMessages = {
+      401: "認証に失敗しました。不正な API Key です。",
+      403: "アクセス権限がありません。",
+      429: "利用量が制限を超過している可能性があります。利用可能枠を確認してください。",
+    };
+    var message = "${res.statusCode} ${res.reasonPhrase}";
+    if (statusMessages[res.statusCode] != null) {
+      message += "\n${statusMessages[res.statusCode]}";
+    }
+    setState(() {
+      statusMessage = message;
+    });
+  }
+
+  Future<void> testOpenAIApi() async {
+    setState(() {
+      updating = true;
+      statusMessage = "";
+    });
+    try {
+      final res = await OpenAIApi(apiKey: openaiApiKeyTextArea.text).testChat("test");
+      if (res.statusCode == 200) {
+        setState(() {
+          statusMessage = "OpenAI API を使用できます。";
+        });
+      } else {
+        showMessageForStatusCode(res);
+      }
+    } catch (e) {
+      setState(() {
+        statusMessage = "Error: ${e.toString()}";
+      });
+    } finally {
+      setState(() {
+        updating = false;
+      });
+    }
+  }
+
+  Future<void> testVoiceTextApi() async {
+    setState(() {
+      updating = true;
+      statusMessage = "";
+    });
+    try {
+      final res = await VoiceTextApi(apiKey: voicetextApiKeyTextArea.text).testTts("test");
+      if (res.statusCode == 200) {
+        setState(() {
+          statusMessage = "VoiceText API を使用できます。";
+        });
+      } else {
+        showMessageForStatusCode(res);
+      }
+    } catch (e) {
+      setState(() {
+        statusMessage = "Error: ${e.toString()}";
+      });
+    } finally {
+      setState(() {
+        updating = false;
+      });
+    }
+  }
+
+  Future<void> updateApiKeys() async {
     final openaiApiKey = openaiApiKeyTextArea.text;
     final voicetextApiKey = voicetextApiKeyTextArea.text;
     setState(() {
@@ -126,6 +194,10 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(
+                          "OpenAI",
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                         RichText(
                           text: TextSpan(
                             children: [
@@ -134,7 +206,8 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    launchUrl(Uri.parse("https://platform.openai.com"), mode: LaunchMode.externalApplication);
+                                    launchUrl(Uri.parse("https://platform.openai.com"),
+                                        mode: LaunchMode.externalApplication);
                                   },
                               ),
                               TextSpan(
@@ -147,14 +220,14 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: TextFormField(
-                            obscureText: isOpenaiApiKeyObscure,
+                            obscureText: openaiApiKeyIsObscure,
                             decoration: InputDecoration(
                               labelText: "OpenAI API Key",
                               suffixIcon: IconButton(
-                                icon: Icon(isOpenaiApiKeyObscure ? Icons.visibility_off : Icons.visibility),
+                                icon: Icon(openaiApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {
                                   setState(() {
-                                    isOpenaiApiKeyObscure = !isOpenaiApiKeyObscure;
+                                    openaiApiKeyIsObscure = !openaiApiKeyIsObscure;
                                   });
                                 },
                               ),
@@ -163,7 +236,21 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: testOpenAIApi,
+                            child: Text(
+                              "テスト",
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 20.0),
+                        Text(
+                          "VoiceText",
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                         RichText(
                           text: TextSpan(
                             children: [
@@ -176,7 +263,8 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    launchUrl(Uri.parse("https://cloud.voicetext.jp"), mode: LaunchMode.externalApplication);
+                                    launchUrl(Uri.parse("https://cloud.voicetext.jp"),
+                                        mode: LaunchMode.externalApplication);
                                   },
                               ),
                               TextSpan(
@@ -189,20 +277,30 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: TextFormField(
-                            obscureText: isVoicetextApiKeyObscure,
+                            obscureText: voicetextApiKeyIsObscure,
                             decoration: InputDecoration(
                               labelText: "VoiceText API Key",
                               suffixIcon: IconButton(
-                                icon: Icon(isVoicetextApiKeyObscure ? Icons.visibility_off : Icons.visibility),
+                                icon: Icon(voicetextApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {
                                   setState(() {
-                                    isVoicetextApiKeyObscure = !isVoicetextApiKeyObscure;
+                                    voicetextApiKeyIsObscure = !voicetextApiKeyIsObscure;
                                   });
                                 },
                               ),
                             ),
                             controller: voicetextApiKeyTextArea,
                             style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: testVoiceTextApi,
+                            child: Text(
+                              "テスト",
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
                           ),
                         ),
                       ],
