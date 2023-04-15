@@ -48,7 +48,9 @@ class ChatBubble extends StatelessWidget {
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  const ChatPage(this.stackchanIpAddress, {super.key});
+
+  final String stackchanIpAddress;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -193,26 +195,21 @@ class _ChatPageState extends State<ChatPage> {
     await stopListening();
     var prefs = await SharedPreferences.getInstance();
     try {
-      var stackchanIpAddress = prefs.getString("stackchanIpAddress");
-      if (stackchanIpAddress != null && stackchanIpAddress.isNotEmpty) {
-        final request = textArea.text.trim();
-        setState(() {
-          textArea.clear();
-          updating = true;
-        });
-        final stackchan = Stackchan(stackchanIpAddress);
-        String reply;
-        if (mode == "chat") {
-          appendMessage(ChatMessage.kindRequest, request);
-          reply = await stackchan.chat(request, voice: voice);
-          appendMessage(ChatMessage.kindReply, reply);
-        } else {
-          // echo
-          reply = await stackchan.speech(request, voice: voice);
-          appendMessage(ChatMessage.kindReply, request);
-        }
+      final request = textArea.text.trim();
+      setState(() {
+        textArea.clear();
+        updating = true;
+      });
+      final stackchan = Stackchan(widget.stackchanIpAddress);
+      String reply;
+      if (mode == "chat") {
+        appendMessage(ChatMessage.kindRequest, request);
+        reply = await stackchan.chat(request, voice: voice);
+        appendMessage(ChatMessage.kindReply, reply);
       } else {
-        appendMessage(ChatMessage.kindError, "ｽﾀｯｸﾁｬﾝ の IP アドレスが設定されていません");
+        // echo
+        reply = await stackchan.speech(request, voice: voice);
+        appendMessage(ChatMessage.kindReply, request);
       }
     } catch (e) {
       appendMessage(ChatMessage.kindError, "Error: ${e.toString()}");

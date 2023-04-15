@@ -93,7 +93,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             subtitle: Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: Theme.of(context).textTheme.titleMedium),
                             leading: const Icon(Icons.speaker_notes, size: 48),
                             onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ChatPage()));
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (context) => ChatPage(stackchanIpAddress)));
                             },
                           ),
                         ),
