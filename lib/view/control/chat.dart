@@ -88,6 +88,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void init() async {
+    // await messageRepository.prepareTestData();
     final savedMessages = await messageRepository.getMessages(maxMessages);
     setState(() {
       messages.addAll(savedMessages);
