@@ -26,7 +26,6 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
   @override
   void initState() {
     super.initState();
-    stackchanIpAddressTextArea.addListener(onUpdate);
     restoreSettings();
   }
 
@@ -39,11 +38,6 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
   void restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
     stackchanIpAddressTextArea.text = prefs.getString("stackchanIpAddress") ?? "";
-  }
-
-  void onUpdate() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("stackchanIpAddress", stackchanIpAddressTextArea.text);
   }
 
   void test() async {
@@ -81,6 +75,14 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
     debugPrint("SmartConfig result: $result");
     if (result != null) {
       stackchanIpAddressTextArea.text = result;
+    }
+  }
+
+  void close() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("stackchanIpAddress", stackchanIpAddressTextArea.text);
+    if (context.mounted) {
+      Navigator.of(context).pop();
     }
   }
 
@@ -165,15 +167,38 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                       child: LinearProgressIndicator(),
                     ),
                   ),
+                  ValueListenableBuilder(
+                    valueListenable: stackchanIpAddressTextArea,
+                    builder: (context, value, child) {
+                      return Visibility(
+                        visible: stackchanIpAddressTextArea.text.isNotEmpty,
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ValueListenableBuilder(
+                            valueListenable: stackchanIpAddressTextArea,
+                            builder: (context, value, child) {
+                              return ElevatedButton(
+                                onPressed: stackchanIpAddressTextArea.text.isEmpty || updating ? null : test,
+                                child: Text(
+                                  "接続確認",
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   SizedBox(
                     width: double.infinity,
                     child: ValueListenableBuilder(
                       valueListenable: stackchanIpAddressTextArea,
                       builder: (context, value, child) {
                         return ElevatedButton(
-                          onPressed: stackchanIpAddressTextArea.text.isEmpty || updating ? null : test,
+                          onPressed: close,
                           child: Text(
-                            "確認",
+                            "OK",
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         );
