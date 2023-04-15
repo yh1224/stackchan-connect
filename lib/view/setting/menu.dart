@@ -15,6 +15,10 @@ class SettingMenuPage extends StatefulWidget {
 }
 
 class _SettingMenuPageState extends State<SettingMenuPage> {
+  /// 初期化完了
+  bool initialized = false;
+
+  /// IP アドレス
   String stackchanIpAddress = "";
 
   @override
@@ -27,6 +31,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
+      initialized = true;
     });
   }
 
@@ -37,55 +42,72 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
       ),
       body: GestureDetector(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
+        child: Visibility(
+          visible: initialized,
           child: Column(
             children: [
-              Card(
-                child: ListTile(
-                  title: Text("IP アドレス設定", style: Theme.of(context).textTheme.titleLarge),
-                  subtitle: Text(stackchanIpAddress),
-                  onTap: () async {
-                    await Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (context) => const SettingIpAddressPage()));
-                    init();
-                  },
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Card(
+                      child: ListTile(
+                        title: Text("IP アドレス設定", style: Theme.of(context).textTheme.titleLarge),
+                        subtitle: Text(stackchanIpAddress),
+                        onTap: () async {
+                          await Navigator.of(context)
+                              .push(MaterialPageRoute(builder: (context) => const SettingIpAddressPage()));
+                          init();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Card(
-                child: ListTile(
-                  title: Text("API Key 設定", style: Theme.of(context).textTheme.titleLarge),
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(stackchanIpAddress)));
-                  },
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  title: Text("ロール設定", style: Theme.of(context).textTheme.titleLarge),
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (context) => SettingRolePage(stackchanIpAddress)));
-                  },
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (context) => SettingStackchanPage(stackchanIpAddress)));
-                  },
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  title: Text("表情設定", style: Theme.of(context).textTheme.titleLarge),
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(builder: (context) => SettingFacePage(stackchanIpAddress)));
-                  },
+              Visibility(
+                visible: stackchanIpAddress.isNotEmpty,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Card(
+                        child: ListTile(
+                          title: Text("API Key 設定", style: Theme.of(context).textTheme.titleLarge),
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(stackchanIpAddress)));
+                          },
+                        ),
+                      ),
+                      Card(
+                        child: ListTile(
+                          title: Text("ロール設定", style: Theme.of(context).textTheme.titleLarge),
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (context) => SettingRolePage(stackchanIpAddress)));
+                          },
+                        ),
+                      ),
+                      Card(
+                        child: ListTile(
+                          title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
+                          onTap: () {
+                            Navigator.of(context).push(
+                                MaterialPageRoute(builder: (context) => SettingStackchanPage(stackchanIpAddress)));
+                          },
+                        ),
+                      ),
+                      Card(
+                        child: ListTile(
+                          title: Text("表情設定", style: Theme.of(context).textTheme.titleLarge),
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (context) => SettingFacePage(stackchanIpAddress)));
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
