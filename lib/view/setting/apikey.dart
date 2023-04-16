@@ -154,6 +154,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
   Future<void> _updateApiKeys() async {
     if (_updating) return;
 
+    FocusManager.instance.primaryFocus?.unfocus();
     final openaiApiKey = _openaiApiKeyTextArea.text.trim();
     final voicetextApiKey = _voicetextApiKeyTextArea.text.trim();
     setState(() {

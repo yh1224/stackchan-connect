@@ -76,6 +76,7 @@ class _SettingRolePageState extends State<SettingRolePage> {
   void _updateRoles() async {
     if (_updating) return;
 
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _updating = true;
       _statusMessage = "";
