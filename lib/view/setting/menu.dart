@@ -16,22 +16,22 @@ class SettingMenuPage extends StatefulWidget {
 
 class _SettingMenuPageState extends State<SettingMenuPage> {
   /// 初期化完了
-  bool initialized = false;
+  bool _initialized = false;
 
   /// IP アドレス
-  String stackchanIpAddress = "";
+  String _stackchanIpAddress = "";
 
   @override
   void initState() {
     super.initState();
-    init();
+    _init();
   }
 
-  void init() async {
+  void _init() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
-      initialized = true;
+      _stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
+      _initialized = true;
     });
   }
 
@@ -43,7 +43,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
       ),
       body: GestureDetector(
         child: Visibility(
-          visible: initialized,
+          visible: _initialized,
           child: Column(
             children: [
               Padding(
@@ -53,11 +53,11 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                     Card(
                       child: ListTile(
                         title: Text("IP アドレス設定", style: Theme.of(context).textTheme.titleLarge),
-                        subtitle: Text(stackchanIpAddress),
+                        subtitle: Text(_stackchanIpAddress),
                         onTap: () async {
                           await Navigator.of(context)
                               .push(MaterialPageRoute(builder: (context) => const SettingIpAddressPage()));
-                          init();
+                          _init();
                         },
                       ),
                     ),
@@ -65,7 +65,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                 ),
               ),
               Visibility(
-                visible: stackchanIpAddress.isNotEmpty,
+                visible: _stackchanIpAddress.isNotEmpty,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
@@ -75,7 +75,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                           title: Text("API Key 設定", style: Theme.of(context).textTheme.titleLarge),
                           onTap: () {
                             Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(stackchanIpAddress)));
+                                .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(_stackchanIpAddress)));
                           },
                         ),
                       ),
@@ -84,7 +84,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                           title: Text("ロール設定", style: Theme.of(context).textTheme.titleLarge),
                           onTap: () {
                             Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (context) => SettingRolePage(stackchanIpAddress)));
+                                .push(MaterialPageRoute(builder: (context) => SettingRolePage(_stackchanIpAddress)));
                           },
                         ),
                       ),
@@ -93,7 +93,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                           title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
                           onTap: () {
                             Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => SettingStackchanPage(stackchanIpAddress)));
+                                MaterialPageRoute(builder: (context) => SettingStackchanPage(_stackchanIpAddress)));
                           },
                         ),
                       ),
@@ -102,7 +102,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                           title: Text("声色設定", style: Theme.of(context).textTheme.titleLarge),
                           onTap: () {
                             Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (context) => SettingVoicePage(stackchanIpAddress)));
+                                .push(MaterialPageRoute(builder: (context) => SettingVoicePage(_stackchanIpAddress)));
                           },
                         ),
                       ),

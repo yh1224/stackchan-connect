@@ -4,9 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../infrastructure/stackchan.dart';
 
 class SettingVoicePage extends StatefulWidget {
-  const SettingVoicePage(this.stackchanIpAddress, {super.key});
-
   final String stackchanIpAddress;
+
+  const SettingVoicePage(this.stackchanIpAddress, {super.key});
 
   @override
   State<SettingVoicePage> createState() => _SettingVoicePageState();
@@ -14,51 +14,51 @@ class SettingVoicePage extends StatefulWidget {
 
 class _SettingVoicePageState extends State<SettingVoicePage> {
   /// テスト中
-  bool updating = false;
+  bool _updating = false;
 
   /// ステータスメッセージ
-  String statusMessage = "";
+  String _statusMessage = "";
 
   /// 声色設定値
-  String? voice;
+  String? _voice;
 
   @override
   void initState() {
     super.initState();
-    restoreSettings();
+    _restoreSettings();
   }
 
-  void restoreSettings() async {
+  void _restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      voice = prefs.getString("voice");
+      _voice = prefs.getString("voice");
     });
   }
 
-  void test() async {
+  void _test() async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
-      await Stackchan(widget.stackchanIpAddress).speech("こんにちは。私の声はいかがですか", voice: voice);
+      await Stackchan(widget.stackchanIpAddress).speech("こんにちは。私の声はいかがですか", voice: _voice);
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
-  void close() async {
+  void _close() async {
     final prefs = await SharedPreferences.getInstance();
-    if (voice == null) {
+    if (_voice == null) {
       await prefs.remove("voice");
     } else {
-      await prefs.setString("voice", voice!);
+      await prefs.setString("voice", _voice!);
     }
     if (context.mounted) {
       Navigator.of(context).pop();
@@ -116,10 +116,10 @@ class _SettingVoicePageState extends State<SettingVoicePage> {
                               ],
                               onChanged: (String? value) {
                                 setState(() {
-                                  voice = value;
+                                  _voice = value;
                                 });
                               },
-                              value: voice,
+                              value: _voice,
                             )
                           ],
                         ),
@@ -136,14 +136,14 @@ class _SettingVoicePageState extends State<SettingVoicePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: statusMessage.isNotEmpty,
+                    visible: _statusMessage.isNotEmpty,
                     child: Text(
-                      statusMessage,
+                      _statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: updating,
+                    visible: _updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),
@@ -152,7 +152,7 @@ class _SettingVoicePageState extends State<SettingVoicePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: test,
+                      onPressed: _test,
                       child: Text(
                         "テスト",
                         style: Theme.of(context).textTheme.bodyLarge,
@@ -162,7 +162,7 @@ class _SettingVoicePageState extends State<SettingVoicePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: close,
+                      onPressed: _close,
                       child: Text(
                         "OK",
                         style: Theme.of(context).textTheme.bodyLarge,

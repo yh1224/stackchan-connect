@@ -9,9 +9,9 @@ import '../../infrastructure/stackchan.dart';
 import '../../infrastructure/voicetext.dart';
 
 class SettingApiKeyPage extends StatefulWidget {
-  const SettingApiKeyPage(this.stackchanIpAddress, {super.key});
-
   final String stackchanIpAddress;
+
+  const SettingApiKeyPage(this.stackchanIpAddress, {super.key});
 
   @override
   State<SettingApiKeyPage> createState() => _SettingApiKeyPageState();
@@ -19,74 +19,74 @@ class SettingApiKeyPage extends StatefulWidget {
 
 class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
   /// 初期化完了
-  bool initialized = false;
+  bool _initialized = false;
 
   /// 設定更新中
-  bool updating = false;
+  bool _updating = false;
 
   /// ステータスメッセージ
-  String statusMessage = "";
+  String _statusMessage = "";
 
   /// OpenAI API Key 入力
-  final openaiApiKeyTextArea = TextEditingController();
-  bool openaiApiKeyIsObscure = true;
+  final _openaiApiKeyTextArea = TextEditingController();
+  bool _openaiApiKeyIsObscure = true;
 
   /// VoiceText API Key 入力
-  final voicetextApiKeyTextArea = TextEditingController();
-  bool voicetextApiKeyIsObscure = true;
+  final _voicetextApiKeyTextArea = TextEditingController();
+  bool _voicetextApiKeyIsObscure = true;
 
   @override
   void initState() {
     super.initState();
-    openaiApiKeyTextArea.addListener(onUpdate);
-    voicetextApiKeyTextArea.addListener(onUpdate);
-    restoreSettings();
-    checkStackchan();
+    _openaiApiKeyTextArea.addListener(_onUpdate);
+    _voicetextApiKeyTextArea.addListener(_onUpdate);
+    _restoreSettings();
+    _checkStackchan();
   }
 
   @override
   void dispose() {
-    openaiApiKeyTextArea.dispose();
-    voicetextApiKeyTextArea.dispose();
+    _openaiApiKeyTextArea.dispose();
+    _voicetextApiKeyTextArea.dispose();
     super.dispose();
   }
 
-  void restoreSettings() async {
+  void _restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    openaiApiKeyTextArea.text = prefs.getString("openaiApiKey") ?? "";
-    voicetextApiKeyTextArea.text = prefs.getString("voicetextApiKey") ?? "";
+    _openaiApiKeyTextArea.text = prefs.getString("openaiApiKey") ?? "";
+    _voicetextApiKeyTextArea.text = prefs.getString("voicetextApiKey") ?? "";
   }
 
-  void onUpdate() async {
+  void _onUpdate() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("openaiApiKey", openaiApiKeyTextArea.text);
-    await prefs.setString("voicetextApiKey", voicetextApiKeyTextArea.text);
+    await prefs.setString("openaiApiKey", _openaiApiKeyTextArea.text);
+    await prefs.setString("voicetextApiKey", _voicetextApiKeyTextArea.text);
   }
 
   // check existence of apikey setting page
-  void checkStackchan() async {
+  void _checkStackchan() async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
       if (await Stackchan(widget.stackchanIpAddress).hasApiKeysApi()) {
         setState(() {
-          initialized = true;
+          _initialized = true;
         });
       } else {
         setState(() {
-          statusMessage = "設定できません。";
+          _statusMessage = "設定できません。";
         });
       }
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
-  void showMessageForStatusCode(Response res) {
+  void _showMessageForStatusCode(Response res) {
     const Map<int, String> statusMessages = {
       401: "認証に失敗しました。不正な API Key です。",
       403: "アクセス権限がありません。",
@@ -97,79 +97,79 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
       message += "\n${statusMessages[res.statusCode]}";
     }
     setState(() {
-      statusMessage = message;
+      _statusMessage = message;
     });
   }
 
-  Future<void> testOpenAIApi() async {
+  Future<void> _testOpenAIApi() async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
-      final res = await OpenAIApi(apiKey: openaiApiKeyTextArea.text).testChat("test");
+      final res = await OpenAIApi(apiKey: _openaiApiKeyTextArea.text).testChat("test");
       if (res.statusCode == 200) {
         setState(() {
-          statusMessage = "OpenAI API を使用できます。";
+          _statusMessage = "OpenAI API を使用できます。";
         });
       } else {
-        showMessageForStatusCode(res);
+        _showMessageForStatusCode(res);
       }
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
-  Future<void> testVoiceTextApi() async {
+  Future<void> _testVoiceTextApi() async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
-      final res = await VoiceTextApi(apiKey: voicetextApiKeyTextArea.text).testTts("test");
+      final res = await VoiceTextApi(apiKey: _voicetextApiKeyTextArea.text).testTts("test");
       if (res.statusCode == 200) {
         setState(() {
-          statusMessage = "VoiceText API を使用できます。";
+          _statusMessage = "VoiceText API を使用できます。";
         });
       } else {
-        showMessageForStatusCode(res);
+        _showMessageForStatusCode(res);
       }
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
-  Future<void> updateApiKeys() async {
-    final openaiApiKey = openaiApiKeyTextArea.text;
-    final voicetextApiKey = voicetextApiKeyTextArea.text;
+  Future<void> _updateApiKeys() async {
+    final openaiApiKey = _openaiApiKeyTextArea.text;
+    final voicetextApiKey = _voicetextApiKeyTextArea.text;
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
       await Stackchan(widget.stackchanIpAddress).setApiKeys(openai: openaiApiKey, voicetext: voicetextApiKey);
       setState(() {
-        statusMessage = "設定しました。";
+        _statusMessage = "設定しました。";
       });
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
@@ -187,7 +187,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
           children: [
             Expanded(
               child: Visibility(
-                visible: initialized,
+                visible: _initialized,
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -220,26 +220,26 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: TextFormField(
-                            obscureText: openaiApiKeyIsObscure,
+                            obscureText: _openaiApiKeyIsObscure,
                             decoration: InputDecoration(
                               labelText: "OpenAI API Key",
                               suffixIcon: IconButton(
-                                icon: Icon(openaiApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
+                                icon: Icon(_openaiApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {
                                   setState(() {
-                                    openaiApiKeyIsObscure = !openaiApiKeyIsObscure;
+                                    _openaiApiKeyIsObscure = !_openaiApiKeyIsObscure;
                                   });
                                 },
                               ),
                             ),
-                            controller: openaiApiKeyTextArea,
+                            controller: _openaiApiKeyTextArea,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: testOpenAIApi,
+                            onPressed: _testOpenAIApi,
                             child: Text(
                               "テスト",
                               style: Theme.of(context).textTheme.bodyLarge,
@@ -277,26 +277,26 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: TextFormField(
-                            obscureText: voicetextApiKeyIsObscure,
+                            obscureText: _voicetextApiKeyIsObscure,
                             decoration: InputDecoration(
                               labelText: "VoiceText API Key",
                               suffixIcon: IconButton(
-                                icon: Icon(voicetextApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
+                                icon: Icon(_voicetextApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {
                                   setState(() {
-                                    voicetextApiKeyIsObscure = !voicetextApiKeyIsObscure;
+                                    _voicetextApiKeyIsObscure = !_voicetextApiKeyIsObscure;
                                   });
                                 },
                               ),
                             ),
-                            controller: voicetextApiKeyTextArea,
+                            controller: _voicetextApiKeyTextArea,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: testVoiceTextApi,
+                            onPressed: _testVoiceTextApi,
                             child: Text(
                               "テスト",
                               style: Theme.of(context).textTheme.bodyLarge,
@@ -316,14 +316,14 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: statusMessage.isNotEmpty,
+                    visible: _statusMessage.isNotEmpty,
                     child: Text(
-                      statusMessage,
+                      _statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: updating,
+                    visible: _updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),
@@ -332,7 +332,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: initialized ? updateApiKeys : null,
+                      onPressed: _initialized ? _updateApiKeys : null,
                       child: Text(
                         "設定",
                         style: Theme.of(context).textTheme.bodyLarge,

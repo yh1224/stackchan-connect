@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../infrastructure/stackchan.dart';
 
 class FacePage extends StatefulWidget {
-  const FacePage(this.stackchanIpAddress, {super.key});
-
   final String stackchanIpAddress;
+
+  const FacePage(this.stackchanIpAddress, {super.key});
 
   @override
   State<FacePage> createState() => _FacePageState();
@@ -13,57 +13,57 @@ class FacePage extends StatefulWidget {
 
 class _FacePageState extends State<FacePage> {
   /// 初期化完了
-  bool initialized = false;
+  bool _initialized = false;
 
   /// 設定更新中
-  bool updating = false;
+  bool _updating = false;
 
   /// ステータスメッセージ
-  String statusMessage = "";
+  String _statusMessage = "";
 
   @override
   void initState() {
     super.initState();
-    checkStackchan();
+    _checkStackchan();
   }
 
   // check existence of apikey setting page
-  void checkStackchan() async {
+  void _checkStackchan() async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
       if (await Stackchan(widget.stackchanIpAddress).hasFaceApi()) {
         setState(() {
-          initialized = true;
+          _initialized = true;
         });
       } else {
         setState(() {
-          statusMessage = "設定できません。";
+          _statusMessage = "設定できません。";
         });
       }
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
-  void updateFace(int value) async {
+  void _updateFace(int value) async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
       await Stackchan(widget.stackchanIpAddress).face("$value");
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
@@ -79,7 +79,7 @@ class _FacePageState extends State<FacePage> {
           children: [
             Expanded(
               child: Visibility(
-                visible: initialized,
+                visible: _initialized,
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -90,7 +90,7 @@ class _FacePageState extends State<FacePage> {
                             title: Text("😐 おすまし", style: Theme.of(context).textTheme.titleLarge),
                             // subtitle: Text("Neutral Face", style: Theme.of(context).textTheme.titleMedium),
                             onTap: () {
-                              updateFace(0);
+                              _updateFace(0);
                             },
                           ),
                         ),
@@ -99,7 +99,7 @@ class _FacePageState extends State<FacePage> {
                             title: Text("😘 たのしい", style: Theme.of(context).textTheme.titleLarge),
                             // subtitle: Text("Happy Face", style: Theme.of(context).textTheme.titleMedium),
                             onTap: () {
-                              updateFace(1);
+                              _updateFace(1);
                             },
                           ),
                         ),
@@ -108,7 +108,7 @@ class _FacePageState extends State<FacePage> {
                             title: Text("😪 ねむい", style: Theme.of(context).textTheme.titleLarge),
                             // subtitle: Text("Sleepy Face", style: Theme.of(context).textTheme.titleMedium),
                             onTap: () {
-                              updateFace(2);
+                              _updateFace(2);
                             },
                           ),
                         ),
@@ -117,7 +117,7 @@ class _FacePageState extends State<FacePage> {
                             title: Text("😥 あやしい", style: Theme.of(context).textTheme.titleLarge),
                             // subtitle: Text("Doubt Face", style: Theme.of(context).textTheme.titleMedium),
                             onTap: () {
-                              updateFace(3);
+                              _updateFace(3);
                             },
                           ),
                         ),
@@ -126,7 +126,7 @@ class _FacePageState extends State<FacePage> {
                             title: Text("😢 かなしい", style: Theme.of(context).textTheme.titleLarge),
                             // subtitle: Text("Sad Face", style: Theme.of(context).textTheme.titleMedium),
                             onTap: () {
-                              updateFace(4);
+                              _updateFace(4);
                             },
                           ),
                         ),
@@ -135,7 +135,7 @@ class _FacePageState extends State<FacePage> {
                             title: Text("😠 おこ", style: Theme.of(context).textTheme.titleLarge),
                             // subtitle: Text("Angry Face", style: Theme.of(context).textTheme.titleMedium),
                             onTap: () {
-                              updateFace(5);
+                              _updateFace(5);
                             },
                           ),
                         ),
@@ -152,14 +152,14 @@ class _FacePageState extends State<FacePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: statusMessage.isNotEmpty,
+                    visible: _statusMessage.isNotEmpty,
                     child: Text(
-                      statusMessage,
+                      _statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: updating,
+                    visible: _updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),

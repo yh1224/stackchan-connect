@@ -5,23 +5,28 @@ import 'package:http/http.dart';
 import 'package:http/retry.dart';
 
 class OpenAIApi {
-  static const String baseUrl = "https://api.openai.com/v1";
+  /// VoiceText Endpoint
+  static const String endpoint = "https://api.openai.com/v1";
 
-  final String apiKey;
-  final RetryClient httpClient;
+  /// OpenAI API Key
+  final String _apiKey;
 
-  OpenAIApi({required this.apiKey})
-      : httpClient = RetryClient(Client(), retries: 2, whenError: (dynamic error, StackTrace stackTrace) {
+  /// HTTP Client
+  final RetryClient _httpClient;
+
+  OpenAIApi({required String apiKey})
+      : _apiKey = apiKey,
+        _httpClient = RetryClient(Client(), retries: 2, whenError: (dynamic error, StackTrace stackTrace) {
           debugPrint(error.toString());
           return true;
         });
 
   Future<Response> testChat(String content) async {
     const path = "chat/completions";
-    final res = await httpClient.post(Uri.parse("$baseUrl/$path"),
+    final res = await _httpClient.post(Uri.parse("$endpoint/$path"),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer $apiKey",
+          "Authorization": "Bearer $_apiKey",
         },
         body: jsonEncode({
           "model": "gpt-3.5-turbo",
@@ -29,7 +34,7 @@ class OpenAIApi {
             {"role": "user", "content": "こんにちは"}
           ],
         }));
-    debugPrint("POST $baseUrl/$path : ${res.statusCode}");
+    debugPrint("POST $endpoint/$path : ${res.statusCode}");
     return res;
   }
 
@@ -40,16 +45,16 @@ class OpenAIApi {
       messages.add({"role": "system", "content": role});
     }
     messages.add({"role": "user", "content": content});
-    final res = await httpClient.post(Uri.parse("$baseUrl/$path"),
+    final res = await _httpClient.post(Uri.parse("$endpoint/$path"),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer $apiKey",
+          "Authorization": "Bearer $_apiKey",
         },
         body: jsonEncode({
           "model": "gpt-3.5-turbo",
           "messages": messages,
         }));
-    debugPrint("POST $baseUrl/$path : ${res.statusCode}");
+    debugPrint("POST $endpoint/$path : ${res.statusCode}");
     final result = jsonDecode(utf8.decode(res.bodyBytes));
     return result["choices"][0]["message"]["content"];
   }

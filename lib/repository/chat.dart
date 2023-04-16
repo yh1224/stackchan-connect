@@ -5,10 +5,10 @@ class ChatMessage {
   static const String kindReply = "reply";
   static const String kindError = "error";
 
-  int? id;
-  DateTime createdAt;
-  String kind;
-  String text;
+  final int? id;
+  final DateTime createdAt;
+  final String kind;
+  final String text;
 
   ChatMessage({this.id, required this.createdAt, required this.kind, required this.text});
 }

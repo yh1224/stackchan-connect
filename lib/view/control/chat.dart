@@ -48,9 +48,9 @@ class ChatBubble extends StatelessWidget {
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage(this.stackchanIpAddress, {super.key});
-
   final String stackchanIpAddress;
+
+  const ChatPage(this.stackchanIpAddress, {super.key});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -61,165 +61,165 @@ class _ChatPageState extends State<ChatPage> {
   static const int maxMessages = 100;
 
   /// 設定更新中
-  bool updating = false;
+  bool _updating = false;
 
   /// 音声認識中
-  bool listening = false;
+  bool _listening = false;
 
   /// 音声認識状態
-  String listeningStatus = "";
+  String _listeningStatus = "";
 
   /// メッセージリポジトリ
-  final messageRepository = ChatRepository();
+  final _messageRepository = ChatRepository();
 
   /// メッセージ履歴
-  List<ChatMessage> messages = [];
+  final List<ChatMessage> _messages = [];
 
   /// メッセージ入力
-  final textArea = TextEditingController();
+  final _textArea = TextEditingController();
 
   /// 音声認識
-  final SpeechToText speechToText = SpeechToText();
+  final SpeechToText _speechToText = SpeechToText();
 
   @override
   void initState() {
     super.initState();
-    init();
+    _init();
   }
 
-  void init() async {
+  void _init() async {
     // await messageRepository.prepareTestData();
-    final savedMessages = await messageRepository.getMessages(maxMessages);
+    final savedMessages = await _messageRepository.getMessages(maxMessages);
     setState(() {
-      messages.addAll(savedMessages);
+      _messages.addAll(savedMessages);
     });
   }
 
   @override
   void dispose() {
-    textArea.dispose();
+    _textArea.dispose();
     super.dispose();
   }
 
-  void clearMessages() {
-    messageRepository.clearAll();
+  void _clearMessages() {
+    _messageRepository.clearAll();
     setState(() {
-      messages.clear();
+      _messages.clear();
     });
   }
 
-  void appendMessage(String kind, String text) async {
+  void _appendMessage(String kind, String text) async {
     final message = ChatMessage(createdAt: DateTime.now(), kind: kind, text: text);
-    messageRepository.append(message);
+    _messageRepository.append(message);
     setState(() {
-      messages.add(message);
-      if (messages.length > maxMessages) {
-        messages.removeAt(0);
+      _messages.add(message);
+      if (_messages.length > maxMessages) {
+        _messages.removeAt(0);
       }
     });
   }
 
   // 音声入力開始
-  Future<void> startListening() async {
+  Future<void> _startListening() async {
     // Unfocus
     final FocusScopeNode currentScope = FocusScope.of(context);
     if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
       FocusManager.instance.primaryFocus!.unfocus();
     }
 
-    bool available = await speechToText.initialize(
-      onError: errorListener,
-      onStatus: statusListener,
+    bool available = await _speechToText.initialize(
+      onError: _errorListener,
+      onStatus: _statusListener,
     );
     if (available) {
-      speechToText.listen(onResult: resultListener);
+      _speechToText.listen(onResult: _resultListener);
       setState(() {
-        listeningStatus = "音声入力中...";
-        listening = true;
+        _listeningStatus = "音声入力中...";
+        _listening = true;
       });
     } else {
-      listeningStatus = "音声入力が拒否されました。";
+      _listeningStatus = "音声入力が拒否されました。";
     }
   }
 
   // 音声入力停止
-  Future<void> stopListening() async {
-    await speechToText.stop();
+  Future<void> _stopListening() async {
+    await _speechToText.stop();
     setState(() {
-      listening = false;
+      _listening = false;
     });
   }
 
   // 音声入力結果
-  void resultListener(SpeechRecognitionResult result) {
+  void _resultListener(SpeechRecognitionResult result) {
     debugPrint("resultListener: ${jsonEncode(result)}");
-    if (listening) {
+    if (_listening) {
       setState(() {
-        textArea.text = result.recognizedWords;
-        listeningStatus = "";
+        _textArea.text = result.recognizedWords;
+        _listeningStatus = "";
         if (result.finalResult) {
-          listening = false;
+          _listening = false;
         }
       });
     }
   }
 
   // 音声入力エラー
-  void errorListener(SpeechRecognitionError error) {
+  void _errorListener(SpeechRecognitionError error) {
     debugPrint("errorListener: ${jsonEncode(error)}");
     setState(() {
-      listeningStatus = "${error.errorMsg} - ${error.permanent}";
-      listening = false;
+      _listeningStatus = "${error.errorMsg} - ${error.permanent}";
+      _listening = false;
     });
   }
 
   // 音声入力状態
-  void statusListener(String status) {
+  void _statusListener(String status) {
     debugPrint("statusListener: $status");
     setState(() {
       if (status == "done") {
-        listeningStatus = "";
+        _listeningStatus = "";
       } else {
-        listeningStatus = status;
+        _listeningStatus = status;
       }
     });
   }
 
   // ｽﾀｯｸﾁｬﾝ API を呼ぶ
-  void callStackchan() async {
-    await stopListening();
+  void _callStackchan() async {
+    await _stopListening();
     var prefs = await SharedPreferences.getInstance();
     final voice = prefs.getString("voice");
     try {
-      final request = textArea.text.trim();
+      final request = _textArea.text.trim();
       setState(() {
-        textArea.clear();
-        updating = true;
+        _textArea.clear();
+        _updating = true;
       });
       final stackchan = Stackchan(widget.stackchanIpAddress);
-      appendMessage(ChatMessage.kindRequest, request);
+      _appendMessage(ChatMessage.kindRequest, request);
       final reply = await stackchan.chat(request, voice: voice);
-      appendMessage(ChatMessage.kindReply, reply);
+      _appendMessage(ChatMessage.kindReply, reply);
     } catch (e) {
-      appendMessage(ChatMessage.kindError, "Error: ${e.toString()}");
+      _appendMessage(ChatMessage.kindError, "Error: ${e.toString()}");
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
   // 入力をクリア
-  void clear() {
+  void _clear() {
     setState(() {
-      textArea.clear();
+      _textArea.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    textArea.selection = TextSelection.fromPosition(
-      TextPosition(offset: textArea.text.length),
+    _textArea.selection = TextSelection.fromPosition(
+      TextPosition(offset: _textArea.text.length),
     );
 
     return Scaffold(
@@ -233,7 +233,7 @@ class _ChatPageState extends State<ChatPage> {
                   child: const Text("クリア"),
                   onTap: () {
                     setState(() {
-                      clearMessages();
+                      _clearMessages();
                     });
                   },
                 )
@@ -254,7 +254,7 @@ class _ChatPageState extends State<ChatPage> {
                     child: ListView(
                       padding: const EdgeInsets.all(8.0),
                       reverse: true,
-                      children: messages.reversed
+                      children: _messages.reversed
                           .map((r) => r.kind == ChatMessage.kindError
                               ? Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -272,15 +272,15 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                   Visibility(
-                    visible: updating,
+                    visible: _updating,
                     child: const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: LinearProgressIndicator(),
                     ),
                   ),
                   Visibility(
-                    visible: listeningStatus.isNotEmpty,
-                    child: Text(listeningStatus),
+                    visible: _listeningStatus.isNotEmpty,
+                    child: Text(_listeningStatus),
                   ),
                 ],
               ),
@@ -295,31 +295,31 @@ class _ChatPageState extends State<ChatPage> {
                         child: Focus(
                           onFocusChange: (hasFocus) {
                             if (hasFocus) {
-                              stopListening();
+                              _stopListening();
                             }
                           },
                           child: TextField(
-                            controller: textArea,
+                            controller: _textArea,
                             keyboardType: TextInputType.multiline,
                             maxLines: null,
                           ),
                         ),
                       ),
                       ValueListenableBuilder(
-                        valueListenable: textArea,
+                        valueListenable: _textArea,
                         builder: (context, value, child) {
                           return IconButton(
                             color: Theme.of(context).colorScheme.primary,
-                            icon: textArea.text.isEmpty
-                                ? (listening ? const Icon(Icons.stop) : const Icon(Icons.mic))
+                            icon: _textArea.text.isEmpty
+                                ? (_listening ? const Icon(Icons.stop) : const Icon(Icons.mic))
                                 : const Icon(Icons.send),
-                            onPressed: updating
+                            onPressed: _updating
                                 ? null
-                                : (textArea.text.isEmpty
-                                    ? listening
-                                        ? stopListening
-                                        : startListening
-                                    : callStackchan),
+                                : (_textArea.text.isEmpty
+                                    ? _listening
+                                        ? _stopListening
+                                        : _startListening
+                                    : _callStackchan),
                           );
                         },
                       ),

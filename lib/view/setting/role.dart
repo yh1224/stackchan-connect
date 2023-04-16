@@ -18,79 +18,79 @@ class _SettingRolePageState extends State<SettingRolePage> {
   static const maxRoleCount = 5;
 
   /// 初期化完了
-  bool initialized = false;
+  bool _initialized = false;
 
   /// 設定更新中
-  bool updating = false;
+  bool _updating = false;
 
   /// ステータスメッセージ
-  String statusMessage = "";
+  String _statusMessage = "";
 
   /// ロール入力
-  final roleTextAreas = List.generate(maxRoleCount, (int index) => TextEditingController());
+  final _roleTextAreas = List.generate(maxRoleCount, (int index) => TextEditingController());
 
   @override
   void initState() {
     super.initState();
-    getRole();
+    _getRole();
   }
 
   @override
   void dispose() {
-    for (var roleTextArea in roleTextAreas) {
+    for (var roleTextArea in _roleTextAreas) {
       roleTextArea.dispose();
     }
     super.dispose();
   }
 
   // check existence of apikey setting page
-  void getRole() async {
+  void _getRole() async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
       final roles = await Stackchan(widget.stackchanIpAddress).getRoles();
-      for (var i = 0; i < min(roleTextAreas.length, roles.length); i++) {
-        roleTextAreas[i].text = roles[i];
+      for (var i = 0; i < min(_roleTextAreas.length, roles.length); i++) {
+        _roleTextAreas[i].text = roles[i];
       }
       setState(() {
-        initialized = true;
+        _initialized = true;
       });
       if (roles.length > maxRoleCount) {
         setState(() {
-          statusMessage = "現在 ${roles.length} 個のロールが設定されています。このアプリでは $maxRoleCount 個までしか設定できませんのでご注意ください。";
+          _statusMessage = "現在 ${roles.length} 個のロールが設定されています。このアプリでは $maxRoleCount 個までしか設定できませんのでご注意ください。";
         });
       }
     } catch (e) {
       setState(() {
-        statusMessage = "設定できません。";
+        _statusMessage = "設定できません。";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
-  void updateRoles() async {
+  void _updateRoles() async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
-    final roles = roleTextAreas.map((roleTextArea) => roleTextArea.text).where((text) => text.isNotEmpty).toList();
+    final roles = _roleTextAreas.map((roleTextArea) => roleTextArea.text).where((text) => text.isNotEmpty).toList();
     try {
       await Stackchan(widget.stackchanIpAddress).setRoles(roles);
       setState(() {
-        statusMessage = "設定しました。";
+        _statusMessage = "設定しました。";
       });
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
@@ -108,7 +108,7 @@ class _SettingRolePageState extends State<SettingRolePage> {
           children: [
             Expanded(
               child: Visibility(
-                visible: initialized,
+                visible: _initialized,
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -126,7 +126,7 @@ class _SettingRolePageState extends State<SettingRolePage> {
                                       decoration: InputDecoration(
                                         labelText: "ロール ${index + 1}",
                                       ),
-                                      controller: roleTextAreas[index],
+                                      controller: _roleTextAreas[index],
                                       style: Theme.of(context).textTheme.bodyLarge,
                                     ),
                                   )),
@@ -142,14 +142,14 @@ class _SettingRolePageState extends State<SettingRolePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: statusMessage.isNotEmpty,
+                    visible: _statusMessage.isNotEmpty,
                     child: Text(
-                      statusMessage,
+                      _statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: updating,
+                    visible: _updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),
@@ -158,7 +158,7 @@ class _SettingRolePageState extends State<SettingRolePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: initialized ? updateRoles : null,
+                      onPressed: _initialized ? _updateRoles : null,
                       child: Text(
                         "設定",
                         style: Theme.of(context).textTheme.bodyLarge,

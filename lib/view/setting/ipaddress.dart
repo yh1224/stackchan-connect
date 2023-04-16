@@ -15,72 +15,72 @@ class SettingIpAddressPage extends StatefulWidget {
 
 class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
   /// 設定更新中
-  bool updating = false;
+  bool _updating = false;
 
   /// ステータスメッセージ
-  String statusMessage = "";
+  String _statusMessage = "";
 
   /// IP アドレス入力
-  final stackchanIpAddressTextArea = TextEditingController();
+  final _stackchanIpAddressTextArea = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    restoreSettings();
+    _restoreSettings();
   }
 
   @override
   void dispose() {
-    stackchanIpAddressTextArea.dispose();
+    _stackchanIpAddressTextArea.dispose();
     super.dispose();
   }
 
-  void restoreSettings() async {
+  void _restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    stackchanIpAddressTextArea.text = prefs.getString("stackchanIpAddress") ?? "";
+    _stackchanIpAddressTextArea.text = prefs.getString("stackchanIpAddress") ?? "";
   }
 
-  void test() async {
-    final stackchanIpAddress = stackchanIpAddressTextArea.text;
+  void _test() async {
+    final stackchanIpAddress = _stackchanIpAddressTextArea.text;
     if (stackchanIpAddress.isEmpty) {
       return;
     }
 
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
       await Stackchan(stackchanIpAddress).speech("接続できました");
       setState(() {
-        statusMessage = "接続できました";
+        _statusMessage = "接続できました";
       });
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
-  bool canSmartConfig() {
+  bool _canSmartConfig() {
     return Platform.isAndroid;
   }
 
-  void startSmartConfig() async {
+  void _startSmartConfig() async {
     final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SmartConfigPage()));
     debugPrint("SmartConfig result: $result");
     if (result != null) {
-      stackchanIpAddressTextArea.text = result;
+      _stackchanIpAddressTextArea.text = result;
     }
   }
 
-  void close() async {
+  void _close() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("stackchanIpAddress", stackchanIpAddressTextArea.text);
+    await prefs.setString("stackchanIpAddress", _stackchanIpAddressTextArea.text);
     if (context.mounted) {
       Navigator.of(context).pop();
     }
@@ -113,7 +113,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
-                              controller: stackchanIpAddressTextArea,
+                              controller: _stackchanIpAddressTextArea,
                               decoration: const InputDecoration(
                                 hintText: "IP アドレス",
                               ),
@@ -126,7 +126,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Visibility(
-                        visible: canSmartConfig(),
+                        visible: _canSmartConfig(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -134,7 +134,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                               "SmartConfig に対応している場合は、以下から自動設定することもできます。",
                             ),
                             ElevatedButton(
-                              onPressed: startSmartConfig,
+                              onPressed: _startSmartConfig,
                               child: const Text(
                                 "SmartConfig で設定する",
                               ),
@@ -154,31 +154,31 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: statusMessage.isNotEmpty,
+                    visible: _statusMessage.isNotEmpty,
                     child: Text(
-                      statusMessage,
+                      _statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: updating,
+                    visible: _updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),
                     ),
                   ),
                   ValueListenableBuilder(
-                    valueListenable: stackchanIpAddressTextArea,
+                    valueListenable: _stackchanIpAddressTextArea,
                     builder: (context, value, child) {
                       return Visibility(
-                        visible: stackchanIpAddressTextArea.text.isNotEmpty,
+                        visible: _stackchanIpAddressTextArea.text.isNotEmpty,
                         child: SizedBox(
                           width: double.infinity,
                           child: ValueListenableBuilder(
-                            valueListenable: stackchanIpAddressTextArea,
+                            valueListenable: _stackchanIpAddressTextArea,
                             builder: (context, value, child) {
                               return ElevatedButton(
-                                onPressed: stackchanIpAddressTextArea.text.isEmpty || updating ? null : test,
+                                onPressed: _stackchanIpAddressTextArea.text.isEmpty || _updating ? null : _test,
                                 child: Text(
                                   "接続確認",
                                   style: Theme.of(context).textTheme.bodyLarge,
@@ -193,10 +193,10 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ValueListenableBuilder(
-                      valueListenable: stackchanIpAddressTextArea,
+                      valueListenable: _stackchanIpAddressTextArea,
                       builder: (context, value, child) {
                         return ElevatedButton(
-                          onPressed: close,
+                          onPressed: _close,
                           child: Text(
                             "OK",
                             style: Theme.of(context).textTheme.bodyLarge,

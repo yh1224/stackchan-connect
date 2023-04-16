@@ -14,77 +14,77 @@ class SettingStackchanPage extends StatefulWidget {
 
 class _SettingStackchanPageState extends State<SettingStackchanPage> {
   /// 初期化完了
-  bool initialized = false;
+  bool _initialized = false;
 
   /// 設定更新中
-  bool updating = false;
+  bool _updating = false;
 
   /// ステータスメッセージ
-  String statusMessage = "";
+  String _statusMessage = "";
 
   /// 音量設定値
-  int volume = 255;
+  int _volume = 255;
 
   @override
   void initState() {
     super.initState();
-    restoreSettings();
-    checkStackchan();
+    _restoreSettings();
+    _checkStackchan();
   }
 
-  void restoreSettings() async {
+  void _restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      volume = prefs.getInt("volume") ?? 255;
+      _volume = prefs.getInt("volume") ?? 255;
     });
   }
 
   // check existence of apikey setting page
-  void checkStackchan() async {
+  void _checkStackchan() async {
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
       if (await Stackchan(widget.stackchanIpAddress).hasSettingApi()) {
         setState(() {
-          initialized = true;
+          _initialized = true;
         });
       } else {
         setState(() {
-          statusMessage = "設定できません。";
+          _statusMessage = "設定できません。";
         });
       }
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
-  void updateVolume() async {
+  void _updateVolume() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt("volume", volume);
+    await prefs.setInt("volume", _volume);
     final voice = prefs.getString("voice");
 
     setState(() {
-      updating = true;
-      statusMessage = "";
+      _updating = true;
+      _statusMessage = "";
     });
     try {
       final stackchan = Stackchan(widget.stackchanIpAddress);
-      await stackchan.setting(volume: "$volume");
-      await stackchan.speech("音量を$volumeに設定しました。", voice: voice);
+      await stackchan.setting(volume: "$_volume");
+      await stackchan.speech("音量を$_volumeに設定しました。", voice: voice);
       setState(() {
-        statusMessage = "設定しました。";
+        _statusMessage = "設定しました。";
       });
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
@@ -100,7 +100,7 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
           children: [
             Expanded(
               child: Visibility(
-                visible: initialized,
+                visible: _initialized,
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -109,17 +109,17 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text("音量: "),
-                          Text("$volume"),
+                          Text("$_volume"),
                         ],
                       ),
                       Slider(
                         label: "音量",
                         min: 0,
                         max: 255,
-                        value: volume.toDouble(),
+                        value: _volume.toDouble(),
                         onChanged: (double value) {
                           setState(() {
-                            volume = value.toInt();
+                            _volume = value.toInt();
                           });
                         },
                       ),
@@ -135,14 +135,14 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: statusMessage.isNotEmpty,
+                    visible: _statusMessage.isNotEmpty,
                     child: Text(
-                      statusMessage,
+                      _statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: updating,
+                    visible: _updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),
@@ -151,7 +151,7 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: initialized ? updateVolume : null,
+                      onPressed: _initialized ? _updateVolume : null,
                       child: Text(
                         "設定",
                         style: Theme.of(context).textTheme.bodyLarge,

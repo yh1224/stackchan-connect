@@ -5,9 +5,9 @@ import '../../infrastructure/stackchan.dart';
 import '../../repository/speech.dart';
 
 class SpeechPage extends StatefulWidget {
-  const SpeechPage(this.stackchanIpAddress, {super.key});
-
   final String stackchanIpAddress;
+
+  const SpeechPage(this.stackchanIpAddress, {super.key});
 
   @override
   State<SpeechPage> createState() => _SpeechPageState();
@@ -18,92 +18,82 @@ class _SpeechPageState extends State<SpeechPage> {
   static const int maxMessages = 100;
 
   /// 設定更新中
-  bool updating = false;
-
-  /// 音声認識中
-  bool listening = false;
+  bool _updating = false;
 
   /// ステータスメッセージ
-  String statusMessage = "";
+  String _statusMessage = "";
 
   /// メッセージリポジトリ
-  final speechRepository = SpeechRepository();
+  final _speechRepository = SpeechRepository();
 
   /// メッセージ履歴
-  List<SpeechMessage> messages = [];
+  final List<SpeechMessage> _messages = [];
 
   /// メッセージ入力
-  final textArea = TextEditingController();
+  final _textArea = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    init();
+    _init();
   }
 
-  void init() async {
-    final savedMessages = await speechRepository.getMessages(maxMessages);
+  void _init() async {
+    final savedMessages = await _speechRepository.getMessages(maxMessages);
     setState(() {
-      messages.addAll(savedMessages);
+      _messages.addAll(savedMessages);
     });
   }
 
   @override
   void dispose() {
-    textArea.dispose();
+    _textArea.dispose();
     super.dispose();
   }
 
-  void clearMessages() {
-    speechRepository.clearAll();
-    setState(() {
-      messages.clear();
-    });
-  }
-
-  void appendMessage(String text) async {
+  void _appendMessage(String text) async {
     final message = SpeechMessage(createdAt: DateTime.now(), text: text);
-    speechRepository.append(message);
+    _speechRepository.append(message);
     setState(() {
-      messages.add(message);
+      _messages.add(message);
     });
   }
 
-  void removeMessage(SpeechMessage message) async {
-    speechRepository.remove(message);
+  void _removeMessage(SpeechMessage message) async {
+    _speechRepository.remove(message);
     setState(() {
-      messages.remove(message);
+      _messages.remove(message);
     });
   }
 
-  void speech(String message, bool append) async {
+  void _speech(String message, bool append) async {
     if (append) {
-      appendMessage(message);
+      _appendMessage(message);
     }
     var prefs = await SharedPreferences.getInstance();
     final voice = prefs.getString("voice");
     setState(() {
-      statusMessage = "";
-      updating = true;
+      _statusMessage = "";
+      _updating = true;
     });
     try {
       final stackchan = Stackchan(widget.stackchanIpAddress);
       await stackchan.speech(message, voice: voice);
     } catch (e) {
       setState(() {
-        statusMessage = "Error: ${e.toString()}";
+        _statusMessage = "Error: ${e.toString()}";
       });
     } finally {
       setState(() {
-        updating = false;
+        _updating = false;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    textArea.selection = TextSelection.fromPosition(
-      TextPosition(offset: textArea.text.length),
+    _textArea.selection = TextSelection.fromPosition(
+      TextPosition(offset: _textArea.text.length),
     );
 
     return Scaffold(
@@ -119,7 +109,7 @@ class _SpeechPageState extends State<SpeechPage> {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ListView(
-                  children: messages
+                  children: _messages
                       .map((m) => Card(
                             child: ListTile(
                               title: Text(m.text),
@@ -138,12 +128,12 @@ class _SpeechPageState extends State<SpeechPage> {
                                     ],
                                   );
                                   if (result == "remove") {
-                                    removeMessage(m);
+                                    _removeMessage(m);
                                   }
                                 },
                               ),
                               onTap: () {
-                                speech(m.text, false);
+                                _speech(m.text, false);
                               },
                             ),
                           ))
@@ -158,14 +148,14 @@ class _SpeechPageState extends State<SpeechPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: statusMessage.isNotEmpty,
+                    visible: _statusMessage.isNotEmpty,
                     child: Text(
-                      statusMessage,
+                      _statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: updating,
+                    visible: _updating,
                     child: const Padding(
                       padding: EdgeInsets.all(8.0),
                       child: LinearProgressIndicator(),
@@ -175,23 +165,23 @@ class _SpeechPageState extends State<SpeechPage> {
                     children: [
                       Expanded(
                         child: TextField(
-                          controller: textArea,
+                          controller: _textArea,
                           keyboardType: TextInputType.multiline,
                           maxLines: null,
                         ),
                       ),
                       ValueListenableBuilder(
-                        valueListenable: textArea,
+                        valueListenable: _textArea,
                         builder: (context, value, child) {
                           return IconButton(
                             color: Theme.of(context).colorScheme.primary,
                             icon: const Icon(Icons.send),
-                            onPressed: updating || textArea.text.isEmpty
+                            onPressed: _updating || _textArea.text.isEmpty
                                 ? null
                                 : () {
-                                    final message = textArea.text.trim();
-                                    textArea.clear();
-                                    speech(message, true);
+                                    final message = _textArea.text.trim();
+                                    _textArea.clear();
+                                    _speech(message, true);
                                   },
                           );
                         },

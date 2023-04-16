@@ -5,26 +5,31 @@ import 'package:http/http.dart';
 import 'package:http/retry.dart';
 
 class VoiceTextApi {
-  static const String baseUrl = "https://api.voicetext.jp/v1";
+  /// VoiceText Endpoint
+  static const String endpoint = "https://api.voicetext.jp/v1";
 
-  String apiKey;
-  RetryClient httpClient;
+  /// VoiceText API Key
+  final String _apiKey;
 
-  VoiceTextApi({required this.apiKey})
-      : httpClient = RetryClient(Client(), retries: 2, whenError: (dynamic error, StackTrace stackTrace) {
+  /// HTTP Client
+  final RetryClient _httpClient;
+
+  VoiceTextApi({required String apiKey})
+      : _apiKey = apiKey,
+        _httpClient = RetryClient(Client(), retries: 2, whenError: (dynamic error, StackTrace stackTrace) {
           debugPrint(error.toString());
           return true;
         });
 
   Future<Response> testTts(String text) async {
     const path = "tts";
-    final res = await httpClient.post(Uri.parse("$baseUrl/$path"), headers: {
-      "Authorization": "Basic ${base64.encode(utf8.encode("$apiKey:"))}",
+    final res = await _httpClient.post(Uri.parse("$endpoint/$path"), headers: {
+      "Authorization": "Basic ${base64.encode(utf8.encode("$_apiKey:"))}",
     }, body: {
       "text": text,
       "speaker": "haruka",
     });
-    debugPrint("POST $baseUrl/$path : ${res.statusCode}");
+    debugPrint("POST $endpoint/$path : ${res.statusCode}");
     return res;
   }
 }

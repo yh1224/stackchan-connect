@@ -7,11 +7,14 @@ import 'package:http/retry.dart';
 import '../core/stackchan.dart';
 
 class Stackchan extends StackchanInterface {
-  final String stackchanIpAddress;
-  final RetryClient httpClient;
+  /// ｽﾀｯｸﾁｬﾝ IP アドレス
+  final String _stackchanIpAddress;
 
-  Stackchan(this.stackchanIpAddress)
-      : httpClient = RetryClient(Client(), retries: 2, whenError: (dynamic error, StackTrace stackTrace) {
+  /// HTTP Client
+  final RetryClient _httpClient;
+
+  Stackchan(this._stackchanIpAddress)
+      : _httpClient = RetryClient(Client(), retries: 2, whenError: (dynamic error, StackTrace stackTrace) {
           debugPrint(error.toString());
           return true;
         });
@@ -19,7 +22,7 @@ class Stackchan extends StackchanInterface {
   /// Check existence of API
   Future<bool> _hasApi(String path) async {
     try {
-      final res = await httpClient.get(Uri.http(stackchanIpAddress, path));
+      final res = await _httpClient.get(Uri.http(_stackchanIpAddress, path));
       debugPrint("GET $path : ${res.statusCode}");
       return res.statusCode == 200;
     } catch (e) {
@@ -57,7 +60,7 @@ class Stackchan extends StackchanInterface {
     if (voicetext != null) {
       params["voicetext"] = voicetext;
     }
-    final res = await httpClient.post(Uri.http(stackchanIpAddress, "/apikey_set"), body: params);
+    final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/apikey_set"), body: params);
     debugPrint("POST /apikey_set ${jsonEncode(params)} : ${res.statusCode}");
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);
@@ -66,7 +69,7 @@ class Stackchan extends StackchanInterface {
 
   @override
   Future<List<String>> getRoles() async {
-    final res = await httpClient.get(Uri.http(stackchanIpAddress, "/role_get"));
+    final res = await _httpClient.get(Uri.http(_stackchanIpAddress, "/role_get"));
     debugPrint("GET /role_get : ${res.statusCode}");
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);
@@ -94,7 +97,7 @@ class Stackchan extends StackchanInterface {
   Future<void> setRoles(List<String> roles) async {
     await deleteRoles();
     for (var role in roles) {
-      final res = await httpClient.post(Uri.http(stackchanIpAddress, "/role_set"), body: role);
+      final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/role_set"), body: role);
       debugPrint("POST /role_set $role : ${res.statusCode}");
       if (res.statusCode != 200) {
         throw UnexpectedResponseError(res.statusCode);
@@ -104,7 +107,7 @@ class Stackchan extends StackchanInterface {
 
   @override
   Future<void> deleteRoles() async {
-    final res = await httpClient.post(Uri.http(stackchanIpAddress, "/role_set"));
+    final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/role_set"));
     debugPrint("POST /role_set : ${res.statusCode}");
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);
@@ -128,7 +131,7 @@ class Stackchan extends StackchanInterface {
     if (voice != null) {
       params["voice"] = voice;
     }
-    final res = await httpClient.post(Uri.http(stackchanIpAddress, "/speech"), body: params);
+    final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/speech"), body: params);
     debugPrint("POST /speech ${jsonEncode(params)} : ${res.statusCode}");
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);
@@ -142,7 +145,7 @@ class Stackchan extends StackchanInterface {
     if (voice != null) {
       params["voice"] = voice;
     }
-    final res = await httpClient.post(Uri.http(stackchanIpAddress, "/chat"), body: params);
+    final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/chat"), body: params);
     debugPrint("POST /chat ${jsonEncode(params)} : ${res.statusCode}");
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);
@@ -155,7 +158,7 @@ class Stackchan extends StackchanInterface {
     final params = {
       "expression": expression,
     };
-    final res = await httpClient.post(Uri.http(stackchanIpAddress, "/face"), body: params);
+    final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/face"), body: params);
     debugPrint("POST /face ${jsonEncode(params)} : ${res.statusCode}");
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);
@@ -168,7 +171,7 @@ class Stackchan extends StackchanInterface {
     if (volume != null) {
       params["volume"] = volume;
     }
-    final res = await httpClient.post(Uri.http(stackchanIpAddress, "/setting"), body: params);
+    final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/setting"), body: params);
     debugPrint("POST /setting ${jsonEncode(params)} : ${res.statusCode}");
     if (res.statusCode != 200) {
       throw UnexpectedResponseError(res.statusCode);

@@ -16,22 +16,22 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   /// 初期化完了
-  bool initialized = false;
+  bool _initialized = false;
 
   /// ｽﾀｯｸﾁｬﾝ IP アドレス
-  String stackchanIpAddress = "";
+  String _stackchanIpAddress = "";
 
   @override
   void initState() {
     super.initState();
-    init();
+    _init();
   }
 
-  void init() async {
+  void _init() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
-      initialized = true;
+      _stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
+      _initialized = true;
     });
   }
 
@@ -78,14 +78,14 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: GestureDetector(
         child: Visibility(
-          visible: initialized,
+          visible: _initialized,
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
                   Visibility(
-                    visible: stackchanIpAddress.isNotEmpty,
+                    visible: _stackchanIpAddress.isNotEmpty,
                     child: Column(
                       children: [
                         Card(
@@ -95,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             leading: const Icon(Icons.message, size: 48),
                             onTap: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => ChatPage(stackchanIpAddress)));
+                                  .push(MaterialPageRoute(builder: (context) => ChatPage(_stackchanIpAddress)));
                             },
                           ),
                         ),
@@ -106,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             leading: const Icon(Icons.volume_up, size: 48),
                             onTap: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => SpeechPage(stackchanIpAddress)));
+                                  .push(MaterialPageRoute(builder: (context) => SpeechPage(_stackchanIpAddress)));
                             },
                           ),
                         ),
@@ -117,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             leading: const Icon(Icons.face, size: 48),
                             onTap: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => FacePage(stackchanIpAddress)));
+                                  .push(MaterialPageRoute(builder: (context) => FacePage(_stackchanIpAddress)));
                             },
                           ),
                         ),
@@ -132,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       onTap: () async {
                         await Navigator.of(context)
                             .push(MaterialPageRoute(builder: (context) => const SettingMenuPage()));
-                        init();
+                        _init();
                       },
                     ),
                   ),

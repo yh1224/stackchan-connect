@@ -12,37 +12,34 @@ class SmartConfigPage extends StatefulWidget {
 
 class _SmartConfigPageState extends State<SmartConfigPage> {
   /// ステータスメッセージ
-  String statusMessage = "";
+  String _statusMessage = "";
 
   /// SmartConfig Provisioner
-  Provisioner? provisioner;
+  Provisioner? _provisioner;
 
   /// Provision 実行中
-  bool provisioning = false;
-
-  /// Provision 完了
-  bool provisionComplete = false;
+  bool _provisioning = false;
 
   /// 接続中の SSID
-  String? wifiSsid;
+  String? _wifiSsid;
 
   /// 接続中の BSSID
-  String? wifiBssid;
+  String? _wifiBssid;
 
   /// Wi-Fi パスワード入力
-  final wifiPassphraseTextArea = TextEditingController();
-  bool isWifiPassphraseObscure = true;
+  final _wifiPassphraseTextArea = TextEditingController();
+  bool _isWifiPassphraseObscure = true;
 
   /// IP アドレス取得結果
-  String? resultIpAddress;
+  String? _resultIpAddress;
 
   @override
   void initState() {
     super.initState();
-    init();
+    _init();
   }
 
-  void init() async {
+  void _init() async {
     final networkInfo = NetworkInfo();
     final locationStatus = await Permission.location.status;
     if (locationStatus.isDenied) {
@@ -57,75 +54,75 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
     }
     final bssid = await networkInfo.getWifiBSSID();
     setState(() {
-      wifiSsid = ssid;
-      wifiBssid = bssid;
+      _wifiSsid = ssid;
+      _wifiBssid = bssid;
     });
   }
 
   @override
   void deactivate() {
-    provisioner?.stop();
+    _provisioner?.stop();
     super.deactivate();
   }
 
-  void startProvision() async {
+  void _startProvision() async {
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
-      statusMessage = "設定をおこなっています...\n電源を入れてしばらくお待ち下さい。";
-      provisioning = true;
+      _statusMessage = "設定をおこなっています...\n電源を入れてしばらくお待ち下さい。";
+      _provisioning = true;
     });
     try {
-      provisioner = Provisioner.espTouch();
-      provisioner!.listen((response) {
+      _provisioner = Provisioner.espTouch();
+      _provisioner!.listen((response) {
         debugPrint("Device ${response.bssidText} connected to WiFi!");
         setState(() {
-          provisioner?.stop();
-          provisioning = false;
+          _provisioner?.stop();
+          _provisioning = false;
         });
         if (response.ipAddressText != null) {
           setState(() {
-            statusMessage = "${response.ipAddressText} が接続されました。";
-            resultIpAddress = response.ipAddressText;
+            _statusMessage = "${response.ipAddressText} が接続されました。";
+            _resultIpAddress = response.ipAddressText;
           });
         }
       }, onError: (e) {
         setState(() {
-          statusMessage = "エラー\n${e.toString()}";
+          _statusMessage = "エラー\n${e.toString()}";
         });
       }, onDone: () {
         debugPrint("Done");
       });
-      await provisioner!.start(ProvisioningRequest.fromStrings(
-        ssid: wifiSsid!,
-        bssid: wifiBssid!,
-        password: wifiPassphraseTextArea.text,
+      await _provisioner!.start(ProvisioningRequest.fromStrings(
+        ssid: _wifiSsid!,
+        bssid: _wifiBssid!,
+        password: _wifiPassphraseTextArea.text,
       ));
     } catch (e) {
       setState(() {
-        statusMessage = "処理が開始できませんでした。\n${e.toString()}";
-        provisioning = false;
+        _statusMessage = "処理が開始できませんでした。\n${e.toString()}";
+        _provisioning = false;
       });
     }
   }
 
-  void stopProvision() {
-    provisioner?.stop();
+  void _stopProvision() {
+    _provisioner?.stop();
     setState(() {
-      statusMessage = "";
-      provisioning = false;
+      _statusMessage = "";
+      _provisioning = false;
     });
   }
 
-  void close() {
-    Navigator.of(context).pop(resultIpAddress);
+  void _close() {
+    Navigator.of(context).pop(_resultIpAddress);
   }
 
-  bool isWifiConnected() {
-    return wifiSsid != null && wifiBssid != null;
+  bool _isWifiConnected() {
+    return _wifiSsid != null && _wifiBssid != null;
   }
 
-  bool canProvision() {
-    return isWifiConnected() && wifiPassphraseTextArea.text.isNotEmpty;
+  bool _canProvision() {
+    return _isWifiConnected() && _wifiPassphraseTextArea.text.isNotEmpty;
   }
 
   @override
@@ -154,7 +151,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                       ),
                       const SizedBox(height: 20.0),
                       Visibility(
-                        visible: isWifiConnected(),
+                        visible: _isWifiConnected(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -174,7 +171,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                                             .copyWith(fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                        "$wifiSsid",
+                                        "$_wifiSsid",
                                         textAlign: TextAlign.left,
                                         style: Theme.of(context).textTheme.bodyLarge,
                                       ),
@@ -194,7 +191,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                                             .copyWith(fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                        "$wifiBssid",
+                                        "$_wifiBssid",
                                         textAlign: TextAlign.left,
                                         style: Theme.of(context).textTheme.bodyLarge,
                                       ),
@@ -204,23 +201,23 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                   child: TextFormField(
-                                    obscureText: isWifiPassphraseObscure,
-                                    readOnly: provisioning,
+                                    obscureText: _isWifiPassphraseObscure,
+                                    readOnly: _provisioning,
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8.0),
                                       ),
                                       labelText: "パスフレーズ",
                                       suffixIcon: IconButton(
-                                        icon: Icon(isWifiPassphraseObscure ? Icons.visibility_off : Icons.visibility),
+                                        icon: Icon(_isWifiPassphraseObscure ? Icons.visibility_off : Icons.visibility),
                                         onPressed: () {
                                           setState(() {
-                                            isWifiPassphraseObscure = !isWifiPassphraseObscure;
+                                            _isWifiPassphraseObscure = !_isWifiPassphraseObscure;
                                           });
                                         },
                                       ),
                                     ),
-                                    controller: wifiPassphraseTextArea,
+                                    controller: _wifiPassphraseTextArea,
                                     style: Theme.of(context).textTheme.bodyLarge,
                                   ),
                                 ),
@@ -240,7 +237,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
               ),
             ),
             Visibility(
-              visible: provisioning,
+              visible: _provisioning,
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -261,23 +258,23 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: statusMessage.isNotEmpty,
+                    visible: _statusMessage.isNotEmpty,
                     child: Text(
-                      statusMessage,
+                      _statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: resultIpAddress == null,
+                    visible: _resultIpAddress == null,
                     child: SizedBox(
                       width: double.infinity,
                       child: ValueListenableBuilder(
-                        valueListenable: wifiPassphraseTextArea,
+                        valueListenable: _wifiPassphraseTextArea,
                         builder: (context, value, child) {
                           return ElevatedButton(
-                            onPressed: canProvision() ? (provisioning ? stopProvision : startProvision) : null,
+                            onPressed: _canProvision() ? (_provisioning ? _stopProvision : _startProvision) : null,
                             child: Text(
-                              provisioning ? "キャンセル" : "設定開始",
+                              _provisioning ? "キャンセル" : "設定開始",
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           );
@@ -286,11 +283,11 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                     ),
                   ),
                   Visibility(
-                    visible: resultIpAddress != null,
+                    visible: _resultIpAddress != null,
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: close,
+                        onPressed: _close,
                         child: Text(
                           "OK",
                           style: Theme.of(context).textTheme.bodyLarge,

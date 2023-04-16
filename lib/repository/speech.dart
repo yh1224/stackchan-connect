@@ -1,9 +1,9 @@
 import 'package:sqflite/sqflite.dart';
 
 class SpeechMessage {
-  int? id;
-  DateTime createdAt;
-  String text;
+  final int? id;
+  final DateTime createdAt;
+  final String text;
 
   SpeechMessage({this.id, required this.createdAt, required this.text});
 }
