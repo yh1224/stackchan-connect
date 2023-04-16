@@ -152,6 +152,8 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
   }
 
   Future<void> _updateApiKeys() async {
+    if (_updating) return;
+
     final openaiApiKey = _openaiApiKeyTextArea.text;
     final voicetextApiKey = _voicetextApiKeyTextArea.text;
     setState(() {
@@ -332,7 +334,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _initialized ? _updateApiKeys : null,
+                      onPressed: (_initialized && !_updating)  ? _updateApiKeys : null,
                       child: Text(
                         "設定",
                         style: Theme.of(context).textTheme.bodyLarge,

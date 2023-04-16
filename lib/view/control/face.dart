@@ -51,6 +51,8 @@ class _FacePageState extends State<FacePage> {
   }
 
   void _updateFace(int value) async {
+    if (_updating) return;
+
     setState(() {
       _updating = true;
       _statusMessage = "";

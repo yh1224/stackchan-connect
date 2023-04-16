@@ -74,6 +74,8 @@ class _SettingRolePageState extends State<SettingRolePage> {
   }
 
   void _updateRoles() async {
+    if (_updating) return;
+
     setState(() {
       _updating = true;
       _statusMessage = "";
@@ -158,7 +160,7 @@ class _SettingRolePageState extends State<SettingRolePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _initialized ? _updateRoles : null,
+                      onPressed: (_initialized && !_updating) ? _updateRoles : null,
                       child: Text(
                         "設定",
                         style: Theme.of(context).textTheme.bodyLarge,

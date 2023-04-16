@@ -63,6 +63,8 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
   }
 
   void _updateVolume() async {
+    if (_updating) return;
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt("volume", _volume);
     final voice = prefs.getString("voice");
@@ -153,7 +155,7 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _initialized ? _updateVolume : null,
+                      onPressed: (_initialized && !_updating) ? _updateVolume : null,
                       child: Text(
                         "設定",
                         style: Theme.of(context).textTheme.bodyLarge,
