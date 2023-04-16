@@ -190,7 +190,7 @@ class _SpeechPageState extends State<SpeechPage> {
                           return IconButton(
                             color: Theme.of(context).colorScheme.primary,
                             icon: const Icon(Icons.send),
-                            onPressed: _updating || _textArea.text.isEmpty
+                            onPressed: _updating || _textArea.text.trim().isEmpty
                                 ? null
                                 : () {
                                     final message = _textArea.text.trim();

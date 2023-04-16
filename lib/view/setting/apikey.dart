@@ -59,8 +59,8 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
 
   void _onUpdate() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("openaiApiKey", _openaiApiKeyTextArea.text);
-    await prefs.setString("voicetextApiKey", _voicetextApiKeyTextArea.text);
+    await prefs.setString("openaiApiKey", _openaiApiKeyTextArea.text.trim());
+    await prefs.setString("voicetextApiKey", _voicetextApiKeyTextArea.text.trim());
   }
 
   // check existence of apikey setting page
@@ -107,7 +107,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
       _statusMessage = "";
     });
     try {
-      final res = await OpenAIApi(apiKey: _openaiApiKeyTextArea.text).testChat("test");
+      final res = await OpenAIApi(apiKey: _openaiApiKeyTextArea.text.trim()).testChat("test");
       if (res.statusCode == 200) {
         setState(() {
           _statusMessage = "OpenAI API を使用できます。";
@@ -132,7 +132,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
       _statusMessage = "";
     });
     try {
-      final res = await VoiceTextApi(apiKey: _voicetextApiKeyTextArea.text).testTts("test");
+      final res = await VoiceTextApi(apiKey: _voicetextApiKeyTextArea.text.trim()).testTts("test");
       if (res.statusCode == 200) {
         setState(() {
           _statusMessage = "VoiceText API を使用できます。";
@@ -154,8 +154,8 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
   Future<void> _updateApiKeys() async {
     if (_updating) return;
 
-    final openaiApiKey = _openaiApiKeyTextArea.text;
-    final voicetextApiKey = _voicetextApiKeyTextArea.text;
+    final openaiApiKey = _openaiApiKeyTextArea.text.trim();
+    final voicetextApiKey = _voicetextApiKeyTextArea.text.trim();
     setState(() {
       _updating = true;
       _statusMessage = "";
@@ -334,7 +334,7 @@ class _SettingApiKeyPageState extends State<SettingApiKeyPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: (_initialized && !_updating)  ? _updateApiKeys : null,
+                      onPressed: (_initialized && !_updating) ? _updateApiKeys : null,
                       child: Text(
                         "設定",
                         style: Theme.of(context).textTheme.bodyLarge,

@@ -80,7 +80,8 @@ class _SettingRolePageState extends State<SettingRolePage> {
       _updating = true;
       _statusMessage = "";
     });
-    final roles = _roleTextAreas.map((roleTextArea) => roleTextArea.text).where((text) => text.isNotEmpty).toList();
+    final roles =
+        _roleTextAreas.map((roleTextArea) => roleTextArea.text.trim()).where((text) => text.isNotEmpty).toList();
     try {
       await Stackchan(widget.stackchanIpAddress).setRoles(roles);
       setState(() {

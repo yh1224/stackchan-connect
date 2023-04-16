@@ -310,12 +310,12 @@ class _ChatPageState extends State<ChatPage> {
                         builder: (context, value, child) {
                           return IconButton(
                             color: Theme.of(context).colorScheme.primary,
-                            icon: _textArea.text.isEmpty
+                            icon: _textArea.text.trim().isEmpty
                                 ? (_listening ? const Icon(Icons.stop) : const Icon(Icons.mic))
                                 : const Icon(Icons.send),
                             onPressed: _updating
                                 ? null
-                                : (_textArea.text.isEmpty
+                                : (_textArea.text.trim().isEmpty
                                     ? _listening
                                         ? _stopListening
                                         : _startListening

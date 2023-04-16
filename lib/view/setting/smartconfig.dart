@@ -95,7 +95,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
       await _provisioner!.start(ProvisioningRequest.fromStrings(
         ssid: _wifiSsid!,
         bssid: _wifiBssid!,
-        password: _wifiPassphraseTextArea.text,
+        password: _wifiPassphraseTextArea.text.trim(),
       ));
     } catch (e) {
       setState(() {
@@ -122,7 +122,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
   }
 
   bool _canProvision() {
-    return _isWifiConnected() && _wifiPassphraseTextArea.text.isNotEmpty;
+    return _isWifiConnected() && _wifiPassphraseTextArea.text.trim().isNotEmpty;
   }
 
   @override

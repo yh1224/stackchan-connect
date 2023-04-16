@@ -41,7 +41,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
   }
 
   void _test() async {
-    final stackchanIpAddress = _stackchanIpAddressTextArea.text;
+    final stackchanIpAddress = _stackchanIpAddressTextArea.text.trim();
     if (stackchanIpAddress.isEmpty) {
       return;
     }
@@ -80,7 +80,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
 
   void _close() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("stackchanIpAddress", _stackchanIpAddressTextArea.text);
+    await prefs.setString("stackchanIpAddress", _stackchanIpAddressTextArea.text.trim());
     if (context.mounted) {
       Navigator.of(context).pop();
     }
@@ -171,14 +171,14 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                     valueListenable: _stackchanIpAddressTextArea,
                     builder: (context, value, child) {
                       return Visibility(
-                        visible: _stackchanIpAddressTextArea.text.isNotEmpty,
+                        visible: _stackchanIpAddressTextArea.text.trim().isNotEmpty,
                         child: SizedBox(
                           width: double.infinity,
                           child: ValueListenableBuilder(
                             valueListenable: _stackchanIpAddressTextArea,
                             builder: (context, value, child) {
                               return ElevatedButton(
-                                onPressed: _stackchanIpAddressTextArea.text.isEmpty || _updating ? null : _test,
+                                onPressed: _stackchanIpAddressTextArea.text.trim().isEmpty || _updating ? null : _test,
                                 child: Text(
                                   "接続確認",
                                   style: Theme.of(context).textTheme.bodyLarge,
