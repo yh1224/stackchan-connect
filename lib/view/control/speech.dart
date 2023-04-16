@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infrastructure/stackchan.dart';
@@ -31,6 +32,9 @@ class _SpeechPageState extends State<SpeechPage> {
 
   /// メッセージ入力
   final _textArea = TextEditingController();
+
+  /// タップ位置
+  Offset? _tapPosition;
 
   @override
   void initState() {
@@ -90,6 +94,14 @@ class _SpeechPageState extends State<SpeechPage> {
     }
   }
 
+  void _getTapPosition(TapDownDetails tapPosition) {
+    final RenderBox referenceBox = context.findRenderObject() as RenderBox;
+    setState(() {
+      _tapPosition = referenceBox.globalToLocal(tapPosition.globalPosition);
+      print(_tapPosition);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     _textArea.selection = TextSelection.fromPosition(
@@ -111,15 +123,19 @@ class _SpeechPageState extends State<SpeechPage> {
                 child: ListView(
                   children: _messages
                       .map((m) => Card(
-                            child: ListTile(
-                              title: Text(m.text),
-                              trailing: GestureDetector(
-                                child: const Icon(Icons.more_vert),
-                                onTapDown: (details) async {
-                                  final position = details.globalPosition;
+                            child: GestureDetector(
+                              onTapDown: _getTapPosition,
+                              child: ListTile(
+                                onTap: () {
+                                  _speech(m.text, false);
+                                },
+                                onLongPress: () async {
+                                  HapticFeedback.mediumImpact();
+                                  if (_tapPosition == null) return;
+                                  final RenderObject? overlay = Overlay.of(context).context.findRenderObject();
                                   final result = await showMenu(
                                     context: context,
-                                    position: RelativeRect.fromLTRB(position.dx, position.dy, 0, 0),
+                                    position: RelativeRect.fromLTRB(_tapPosition!.dx, _tapPosition!.dy, 0, 0),
                                     items: [
                                       const PopupMenuItem(
                                         value: "remove",
@@ -131,10 +147,8 @@ class _SpeechPageState extends State<SpeechPage> {
                                     _removeMessage(m);
                                   }
                                 },
+                                title: Text(m.text),
                               ),
-                              onTap: () {
-                                _speech(m.text, false);
-                              },
                             ),
                           ))
                       .toList(),
