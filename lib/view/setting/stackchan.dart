@@ -101,29 +101,31 @@ class _SettingStackchanPageState extends State<SettingStackchanPage> {
             Expanded(
               child: Visibility(
                 visible: _initialized,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("音量: "),
-                          Text("$_volume"),
-                        ],
-                      ),
-                      Slider(
-                        label: "音量",
-                        min: 0,
-                        max: 255,
-                        value: _volume.toDouble(),
-                        onChanged: (double value) {
-                          setState(() {
-                            _volume = value.toInt();
-                          });
-                        },
-                      ),
-                    ],
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text("音量: "),
+                            Text("$_volume"),
+                          ],
+                        ),
+                        Slider(
+                          label: "音量",
+                          min: 0,
+                          max: 255,
+                          value: _volume.toDouble(),
+                          onChanged: (double value) {
+                            setState(() {
+                              _volume = value.toInt();
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
