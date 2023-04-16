@@ -101,6 +101,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
