@@ -1,24 +1,25 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infrastructure/stackchan.dart';
 import 'smartconfig.dart';
 
-class SettingIpAddressPage extends StatefulWidget {
+class SettingIpAddressPage extends ConsumerStatefulWidget {
   const SettingIpAddressPage({super.key});
 
   @override
-  State<SettingIpAddressPage> createState() => _SettingIpAddressPageState();
+  ConsumerState<SettingIpAddressPage> createState() => _SettingIpAddressPageState();
 }
 
-class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
+class _SettingIpAddressPageState extends ConsumerState<SettingIpAddressPage> {
   /// 設定更新中
-  bool _updating = false;
+  final _updatingProvider = StateProvider((ref) => false);
 
   /// ステータスメッセージ
-  String _statusMessage = "";
+  final _statusMessageProvider = StateProvider((ref) => "");
 
   /// IP アドレス入力
   final _stackchanIpAddressTextArea = TextEditingController();
@@ -26,7 +27,9 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
   @override
   void initState() {
     super.initState();
-    _restoreSettings();
+    Future(() async {
+      await _restoreSettings();
+    });
   }
 
   @override
@@ -35,34 +38,26 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
     super.dispose();
   }
 
-  void _restoreSettings() async {
+  Future<void> _restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
     _stackchanIpAddressTextArea.text = prefs.getString("stackchanIpAddress") ?? "";
   }
 
-  void _test() async {
+  Future<void> _test() async {
     final stackchanIpAddress = _stackchanIpAddressTextArea.text.trim();
     if (stackchanIpAddress.isEmpty) {
       return;
     }
 
-    setState(() {
-      _updating = true;
-      _statusMessage = "";
-    });
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
     try {
       await Stackchan(stackchanIpAddress).speech("接続できました");
-      setState(() {
-        _statusMessage = "接続できました";
-      });
+      ref.read(_statusMessageProvider.notifier).state = "接続できました";
     } catch (e) {
-      setState(() {
-        _statusMessage = "Error: ${e.toString()}";
-      });
+      ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
-      setState(() {
-        _updating = false;
-      });
+      ref.read(_updatingProvider.notifier).state = false;
     }
   }
 
@@ -70,7 +65,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
     return Platform.isAndroid;
   }
 
-  void _startSmartConfig() async {
+  Future<void> _startSmartConfig() async {
     final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SmartConfigPage()));
     debugPrint("SmartConfig result: $result");
     if (result != null) {
@@ -78,7 +73,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
     }
   }
 
-  void _close() async {
+  Future<void> _close() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("stackchanIpAddress", _stackchanIpAddressTextArea.text.trim());
     if (context.mounted) {
@@ -88,6 +83,9 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
 
   @override
   Widget build(BuildContext context) {
+    final updating = ref.watch(_updatingProvider);
+    final statusMessage = ref.watch(_statusMessageProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
@@ -155,14 +153,14 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: _statusMessage.isNotEmpty,
+                    visible: statusMessage.isNotEmpty,
                     child: Text(
-                      _statusMessage,
+                      statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: _updating,
+                    visible: updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),
@@ -179,7 +177,7 @@ class _SettingIpAddressPageState extends State<SettingIpAddressPage> {
                             valueListenable: _stackchanIpAddressTextArea,
                             builder: (context, value, child) {
                               return ElevatedButton(
-                                onPressed: _stackchanIpAddressTextArea.text.trim().isEmpty || _updating ? null : _test,
+                                onPressed: _stackchanIpAddressTextArea.text.trim().isEmpty || updating ? null : _test,
                                 child: Text(
                                   "接続確認",
                                   style: Theme.of(context).textTheme.bodyLarge,

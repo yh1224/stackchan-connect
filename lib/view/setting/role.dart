@@ -1,30 +1,31 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../infrastructure/stackchan.dart';
 
-class SettingRolePage extends StatefulWidget {
+class SettingRolePage extends ConsumerStatefulWidget {
   const SettingRolePage(this.stackchanIpAddress, {super.key});
 
   final String stackchanIpAddress;
 
   @override
-  State<SettingRolePage> createState() => _SettingRolePageState();
+  ConsumerState<SettingRolePage> createState() => _SettingRolePageState();
 }
 
-class _SettingRolePageState extends State<SettingRolePage> {
+class _SettingRolePageState extends ConsumerState<SettingRolePage> {
   /// ロール設定可能数  TODO: とりあえず固定
   static const maxRoleCount = 5;
 
   /// 初期化完了
-  bool _initialized = false;
+  final _initializedProvider = StateProvider((ref) => false);
 
   /// 設定更新中
-  bool _updating = false;
+  final _updatingProvider = StateProvider((ref) => false);
 
   /// ステータスメッセージ
-  String _statusMessage = "";
+  final _statusMessageProvider = StateProvider((ref) => "");
 
   /// ロール入力
   final _roleTextAreas = List.generate(maxRoleCount, (int index) => TextEditingController());
@@ -32,7 +33,9 @@ class _SettingRolePageState extends State<SettingRolePage> {
   @override
   void initState() {
     super.initState();
-    _getRole();
+    Future(() async {
+      await _getRole();
+    });
   }
 
   @override
@@ -44,63 +47,50 @@ class _SettingRolePageState extends State<SettingRolePage> {
   }
 
   // check existence of apikey setting page
-  void _getRole() async {
-    setState(() {
-      _updating = true;
-      _statusMessage = "";
-    });
+  Future<void> _getRole() async {
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
     try {
       final roles = await Stackchan(widget.stackchanIpAddress).getRoles();
       for (var i = 0; i < min(_roleTextAreas.length, roles.length); i++) {
         _roleTextAreas[i].text = roles[i];
       }
-      setState(() {
-        _initialized = true;
-      });
+      ref.read(_initializedProvider.notifier).state = true;
       if (roles.length > maxRoleCount) {
-        setState(() {
-          _statusMessage = "現在 ${roles.length} 個のロールが設定されています。このアプリでは $maxRoleCount 個までしか設定できませんのでご注意ください。";
-        });
+        ref.read(_statusMessageProvider.notifier).state =
+            "現在 ${roles.length} 個のロールが設定されています。このアプリでは $maxRoleCount 個までしか設定できませんのでご注意ください。";
       }
     } catch (e) {
-      setState(() {
-        _statusMessage = "設定できません。";
-      });
+      ref.read(_statusMessageProvider.notifier).state = "設定できません。";
     } finally {
-      setState(() {
-        _updating = false;
-      });
+      ref.read(_updatingProvider.notifier).state = false;
     }
   }
 
-  void _updateRoles() async {
-    if (_updating) return;
+  Future<void> _updateRoles() async {
+    if (ref.read(_updatingProvider)) return;
 
     FocusManager.instance.primaryFocus?.unfocus();
-    setState(() {
-      _updating = true;
-      _statusMessage = "";
-    });
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
     final roles =
         _roleTextAreas.map((roleTextArea) => roleTextArea.text.trim()).where((text) => text.isNotEmpty).toList();
     try {
       await Stackchan(widget.stackchanIpAddress).setRoles(roles);
-      setState(() {
-        _statusMessage = "設定しました。";
-      });
+      ref.read(_statusMessageProvider.notifier).state = "設定しました。";
     } catch (e) {
-      setState(() {
-        _statusMessage = "Error: ${e.toString()}";
-      });
+      ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
-      setState(() {
-        _updating = false;
-      });
+      ref.read(_updatingProvider.notifier).state = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final initialized = ref.watch(_initializedProvider);
+    final updating = ref.watch(_updatingProvider);
+    final statusMessage = ref.watch(_statusMessageProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
@@ -112,7 +102,7 @@ class _SettingRolePageState extends State<SettingRolePage> {
           children: [
             Expanded(
               child: Visibility(
-                visible: _initialized,
+                visible: initialized,
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -146,14 +136,14 @@ class _SettingRolePageState extends State<SettingRolePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: _statusMessage.isNotEmpty,
+                    visible: statusMessage.isNotEmpty,
                     child: Text(
-                      _statusMessage,
+                      statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: _updating,
+                    visible: updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),
@@ -162,7 +152,7 @@ class _SettingRolePageState extends State<SettingRolePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: (_initialized && !_updating) ? _updateRoles : null,
+                      onPressed: (initialized && !updating) ? _updateRoles : null,
                       child: Text(
                         "設定",
                         style: Theme.of(context).textTheme.bodyLarge,

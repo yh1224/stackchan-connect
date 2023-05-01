@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'apikey.dart';
@@ -7,43 +8,46 @@ import 'role.dart';
 import 'stackchan.dart';
 import 'voice.dart';
 
-class SettingMenuPage extends StatefulWidget {
+class SettingMenuPage extends ConsumerStatefulWidget {
   const SettingMenuPage({super.key});
 
   @override
-  State<SettingMenuPage> createState() => _SettingMenuPageState();
+  ConsumerState<SettingMenuPage> createState() => _SettingMenuPageState();
 }
 
-class _SettingMenuPageState extends State<SettingMenuPage> {
+class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
   /// 初期化完了
-  bool _initialized = false;
+  final _initializedProvider = StateProvider((ref) => false);
 
   /// IP アドレス
-  String _stackchanIpAddress = "";
+  final _stackchanIpAddressProvider = StateProvider((ref) => "");
 
   @override
   void initState() {
     super.initState();
-    _init();
+    Future(() async {
+      await _init();
+    });
   }
 
-  void _init() async {
+  Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
-      _initialized = true;
-    });
+    ref.read(_stackchanIpAddressProvider.notifier).state = prefs.getString("stackchanIpAddress") ?? "";
+    ref.read(_initializedProvider.notifier).state = true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final initialized = ref.watch(_initializedProvider);
+    final stackchanIpAddress = ref.watch(_stackchanIpAddressProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
       ),
       body: GestureDetector(
         child: Visibility(
-          visible: _initialized,
+          visible: initialized,
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -54,7 +58,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                       Card(
                         child: ListTile(
                           title: Text("IP アドレス設定", style: Theme.of(context).textTheme.titleLarge),
-                          subtitle: Text(_stackchanIpAddress),
+                          subtitle: Text(stackchanIpAddress),
                           onTap: () async {
                             await Navigator.of(context)
                                 .push(MaterialPageRoute(builder: (context) => const SettingIpAddressPage()));
@@ -66,7 +70,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                   ),
                 ),
                 Visibility(
-                  visible: _stackchanIpAddress.isNotEmpty,
+                  visible: stackchanIpAddress.isNotEmpty,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
@@ -75,8 +79,8 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                           child: ListTile(
                             title: Text("API Key 設定", style: Theme.of(context).textTheme.titleLarge),
                             onTap: () {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(_stackchanIpAddress)));
+                              Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (context) => SettingApiKeyPage(stackchanIpAddress)));
                             },
                           ),
                         ),
@@ -85,7 +89,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                             title: Text("ロール設定", style: Theme.of(context).textTheme.titleLarge),
                             onTap: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => SettingRolePage(_stackchanIpAddress)));
+                                  .push(MaterialPageRoute(builder: (context) => SettingRolePage(stackchanIpAddress)));
                             },
                           ),
                         ),
@@ -94,7 +98,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                             title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
                             onTap: () {
                               Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => SettingStackchanPage(_stackchanIpAddress)));
+                                  MaterialPageRoute(builder: (context) => SettingStackchanPage(stackchanIpAddress)));
                             },
                           ),
                         ),
@@ -103,7 +107,7 @@ class _SettingMenuPageState extends State<SettingMenuPage> {
                             title: Text("声色設定", style: Theme.of(context).textTheme.titleLarge),
                             onTap: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => SettingVoicePage(_stackchanIpAddress)));
+                                  .push(MaterialPageRoute(builder: (context) => SettingVoicePage(stackchanIpAddress)));
                             },
                           ),
                         ),

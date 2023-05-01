@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -47,33 +48,21 @@ class ChatBubble extends StatelessWidget {
   }
 }
 
-class ChatPage extends StatefulWidget {
-  final String stackchanIpAddress;
-
+class ChatPage extends ConsumerStatefulWidget {
   const ChatPage(this.stackchanIpAddress, {super.key});
 
+  final String stackchanIpAddress;
+
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends ConsumerState<ChatPage> {
   /// メッセージ表示最大数
   static const int maxMessages = 100;
 
-  /// 設定更新中
-  bool _updating = false;
-
-  /// 音声認識中
-  bool _listening = false;
-
-  /// 音声認識状態
-  String _listeningStatus = "";
-
   /// メッセージリポジトリ
   final _messageRepository = ChatRepository();
-
-  /// メッセージ履歴
-  final List<ChatMessage> _messages = [];
 
   /// メッセージ入力
   final _textArea = TextEditingController();
@@ -81,18 +70,30 @@ class _ChatPageState extends State<ChatPage> {
   /// 音声認識
   final SpeechToText _speechToText = SpeechToText();
 
+  /// 設定更新中
+  final _updatingProvider = StateProvider((ref) => false);
+
+  /// 音声認識中
+  final _listeningProvider = StateProvider((ref) => false);
+
+  /// 音声認識状態
+  final _listeningStatusProvider = StateProvider((ref) => "");
+
+  /// メッセージ履歴
+  final _messagesProvider = StateProvider<List<ChatMessage>>((ref) => []);
+
   @override
   void initState() {
     super.initState();
-    _init();
+    Future(() async {
+      await _init();
+    });
   }
 
-  void _init() async {
+  Future<void> _init() async {
     // await messageRepository.prepareTestData();
-    final savedMessages = await _messageRepository.getMessages(maxMessages);
-    setState(() {
-      _messages.addAll(savedMessages);
-    });
+    final messages = await _messageRepository.getMessages(maxMessages);
+    ref.read(_messagesProvider.notifier).state = messages;
   }
 
   @override
@@ -103,20 +104,18 @@ class _ChatPageState extends State<ChatPage> {
 
   void _clearMessages() {
     _messageRepository.clearAll();
-    setState(() {
-      _messages.clear();
-    });
+    ref.read(_messagesProvider.notifier).state = [];
   }
 
-  void _appendMessage(String kind, String text) async {
+  Future<void> _appendMessage(String kind, String text) async {
     final message = ChatMessage(createdAt: DateTime.now(), kind: kind, text: text);
     _messageRepository.append(message);
-    setState(() {
-      _messages.add(message);
-      if (_messages.length > maxMessages) {
-        _messages.removeAt(0);
-      }
-    });
+    final messages = ref.read(_messagesProvider);
+    if (messages.length >= maxMessages) {
+      messages.removeAt(0);
+    }
+    messages.add(message);
+    ref.read(_messagesProvider.notifier).state = List.from(messages);
   }
 
   // 音声入力開始
@@ -133,69 +132,57 @@ class _ChatPageState extends State<ChatPage> {
     );
     if (available) {
       _speechToText.listen(onResult: _resultListener);
-      setState(() {
-        _listeningStatus = "音声入力中...";
-        _listening = true;
-      });
+      ref.read(_listeningStatusProvider.notifier).state = "音声入力中...";
+      ref.read(_listeningProvider.notifier).state = true;
     } else {
-      _listeningStatus = "音声入力が拒否されました。";
+      ref.read(_listeningStatusProvider.notifier).state = "音声入力が拒否されました。";
     }
   }
 
   // 音声入力停止
   Future<void> _stopListening() async {
     await _speechToText.stop();
-    setState(() {
-      _listening = false;
-    });
+    ref.read(_listeningProvider.notifier).state = false;
   }
 
   // 音声入力結果
   void _resultListener(SpeechRecognitionResult result) {
     debugPrint("resultListener: ${jsonEncode(result)}");
-    if (_listening) {
-      setState(() {
-        _textArea.text = result.recognizedWords;
-        _listeningStatus = "";
-        if (result.finalResult) {
-          _listening = false;
-        }
-      });
+    if (ref.read(_listeningProvider)) {
+      _textArea.text = result.recognizedWords;
+      ref.read(_listeningStatusProvider.notifier).state = "";
+      if (result.finalResult) {
+        ref.read(_listeningProvider.notifier).state = false;
+      }
     }
   }
 
   // 音声入力エラー
   void _errorListener(SpeechRecognitionError error) {
     debugPrint("errorListener: ${jsonEncode(error)}");
-    setState(() {
-      _listeningStatus = "${error.errorMsg} - ${error.permanent}";
-      _listening = false;
-    });
+    ref.read(_listeningStatusProvider.notifier).state = "${error.errorMsg} - ${error.permanent}";
+    ref.read(_listeningProvider.notifier).state = false;
   }
 
   // 音声入力状態
   void _statusListener(String status) {
     debugPrint("statusListener: $status");
-    setState(() {
-      if (status == "done") {
-        _listeningStatus = "";
-      } else {
-        _listeningStatus = status;
-      }
-    });
+    if (status == "done") {
+      ref.read(_listeningStatusProvider.notifier).state = "";
+    } else {
+      ref.read(_listeningStatusProvider.notifier).state = status;
+    }
   }
 
   // ｽﾀｯｸﾁｬﾝ API を呼ぶ
-  void _callStackchan() async {
+  Future<void> _callStackchan() async {
     await _stopListening();
     var prefs = await SharedPreferences.getInstance();
     final voice = prefs.getString("voice");
     try {
       final request = _textArea.text.trim();
-      setState(() {
-        _textArea.clear();
-        _updating = true;
-      });
+      _textArea.clear();
+      ref.read(_updatingProvider.notifier).state = true;
       final stackchan = Stackchan(widget.stackchanIpAddress);
       _appendMessage(ChatMessage.kindRequest, request);
       final reply = await stackchan.chat(request, voice: voice);
@@ -203,17 +190,13 @@ class _ChatPageState extends State<ChatPage> {
     } catch (e) {
       _appendMessage(ChatMessage.kindError, "Error: ${e.toString()}");
     } finally {
-      setState(() {
-        _updating = false;
-      });
+      ref.read(_updatingProvider.notifier).state = false;
     }
   }
 
   // 入力をクリア
   void _clear() {
-    setState(() {
-      _textArea.clear();
-    });
+    _textArea.clear();
   }
 
   @override
@@ -221,6 +204,11 @@ class _ChatPageState extends State<ChatPage> {
     _textArea.selection = TextSelection.fromPosition(
       TextPosition(offset: _textArea.text.length),
     );
+
+    final updating = ref.watch(_updatingProvider);
+    final listening = ref.watch(_listeningProvider);
+    final listeningStatus = ref.watch(_listeningStatusProvider);
+    final messages = ref.watch(_messagesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -232,9 +220,7 @@ class _ChatPageState extends State<ChatPage> {
                 PopupMenuItem(
                   child: const Text("クリア"),
                   onTap: () {
-                    setState(() {
-                      _clearMessages();
-                    });
+                    _clearMessages();
                   },
                 )
               ];
@@ -254,7 +240,7 @@ class _ChatPageState extends State<ChatPage> {
                     child: ListView(
                       padding: const EdgeInsets.all(8.0),
                       reverse: true,
-                      children: _messages.reversed
+                      children: messages.reversed
                           .map((r) => r.kind == ChatMessage.kindError
                               ? Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -272,15 +258,15 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                   Visibility(
-                    visible: _updating,
+                    visible: updating,
                     child: const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: LinearProgressIndicator(),
                     ),
                   ),
                   Visibility(
-                    visible: _listeningStatus.isNotEmpty,
-                    child: Text(_listeningStatus),
+                    visible: listeningStatus.isNotEmpty,
+                    child: Text(listeningStatus),
                   ),
                 ],
               ),
@@ -311,12 +297,12 @@ class _ChatPageState extends State<ChatPage> {
                           return IconButton(
                             color: Theme.of(context).colorScheme.primary,
                             icon: _textArea.text.trim().isEmpty
-                                ? (_listening ? const Icon(Icons.stop) : const Icon(Icons.mic))
+                                ? (listening ? const Icon(Icons.stop) : const Icon(Icons.mic))
                                 : const Icon(Icons.send),
-                            onPressed: _updating
+                            onPressed: updating
                                 ? null
                                 : (_textArea.text.trim().isEmpty
-                                    ? _listening
+                                    ? listening
                                         ? _stopListening
                                         : _startListening
                                     : _callStackchan),

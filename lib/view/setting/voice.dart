@@ -1,64 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infrastructure/stackchan.dart';
 
-class SettingVoicePage extends StatefulWidget {
+class SettingVoicePage extends ConsumerStatefulWidget {
   final String stackchanIpAddress;
 
   const SettingVoicePage(this.stackchanIpAddress, {super.key});
 
   @override
-  State<SettingVoicePage> createState() => _SettingVoicePageState();
+  ConsumerState<SettingVoicePage> createState() => _SettingVoicePageState();
 }
 
-class _SettingVoicePageState extends State<SettingVoicePage> {
+class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
   /// テスト中
-  bool _updating = false;
+  final _updatingProvider = StateProvider((ref) => false);
 
   /// ステータスメッセージ
-  String _statusMessage = "";
+  final _statusMessageProvider = StateProvider((ref) => "");
 
   /// 声色設定値
-  String? _voice;
+  final _voiceProvider = StateProvider<String?>((ref) => null);
 
   @override
   void initState() {
     super.initState();
-    _restoreSettings();
+    Future(() async {
+      await _restoreSettings();
+    });
   }
 
-  void _restoreSettings() async {
+  Future<void> _restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _voice = prefs.getString("voice");
-    });
+    ref.read(_voiceProvider.notifier).state = prefs.getString("voice");
   }
 
-  void _test() async {
-    setState(() {
-      _updating = true;
-      _statusMessage = "";
-    });
+  Future<void> _test() async {
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      await Stackchan(widget.stackchanIpAddress).speech("こんにちは。私の声はいかがですか", voice: _voice);
+      await Stackchan(widget.stackchanIpAddress).speech("こんにちは。私の声はいかがですか", voice: ref.read(_voiceProvider));
     } catch (e) {
-      setState(() {
-        _statusMessage = "Error: ${e.toString()}";
-      });
+      ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
-      setState(() {
-        _updating = false;
-      });
+      ref.read(_updatingProvider.notifier).state = false;
     }
   }
 
-  void _close() async {
+  Future<void> _close() async {
     final prefs = await SharedPreferences.getInstance();
-    if (_voice == null) {
+    if (ref.read(_voiceProvider) == null) {
       await prefs.remove("voice");
     } else {
-      await prefs.setString("voice", _voice!);
+      await prefs.setString("voice", ref.read(_voiceProvider)!);
     }
     if (context.mounted) {
       Navigator.of(context).pop();
@@ -67,6 +62,10 @@ class _SettingVoicePageState extends State<SettingVoicePage> {
 
   @override
   Widget build(BuildContext context) {
+    final updating = ref.watch(_updatingProvider);
+    final statusMessage = ref.watch(_statusMessageProvider);
+    final voice = ref.watch(_voiceProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
@@ -115,11 +114,9 @@ class _SettingVoicePageState extends State<SettingVoicePage> {
                                 ),
                               ],
                               onChanged: (String? value) {
-                                setState(() {
-                                  _voice = value;
-                                });
+                                ref.read(_voiceProvider.notifier).state = value;
                               },
-                              value: _voice,
+                              value: voice,
                             )
                           ],
                         ),
@@ -136,14 +133,14 @@ class _SettingVoicePageState extends State<SettingVoicePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: _statusMessage.isNotEmpty,
+                    visible: statusMessage.isNotEmpty,
                     child: Text(
-                      _statusMessage,
+                      statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: _updating,
+                    visible: updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),

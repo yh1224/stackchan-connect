@@ -1,77 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../infrastructure/stackchan.dart';
 
-class FacePage extends StatefulWidget {
-  final String stackchanIpAddress;
-
+class FacePage extends ConsumerStatefulWidget {
   const FacePage(this.stackchanIpAddress, {super.key});
 
+  final String stackchanIpAddress;
+
   @override
-  State<FacePage> createState() => _FacePageState();
+  ConsumerState<FacePage> createState() => _FacePageState();
 }
 
-class _FacePageState extends State<FacePage> {
+class _FacePageState extends ConsumerState<FacePage> {
   /// 初期化完了
-  bool _initialized = false;
+  final _initializedProvider = StateProvider((ref) => false);
 
   /// 設定更新中
-  bool _updating = false;
+  final _updatingProvider = StateProvider((ref) => false);
 
   /// ステータスメッセージ
-  String _statusMessage = "";
+  final _statusMessageProvider = StateProvider((ref) => "");
 
   @override
   void initState() {
     super.initState();
-    _checkStackchan();
+    Future(() async {
+      await _checkStackchan();
+    });
   }
 
   // check existence of apikey setting page
-  void _checkStackchan() async {
-    setState(() {
-      _updating = true;
-      _statusMessage = "";
-    });
+  Future<void> _checkStackchan() async {
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
     try {
       if (await Stackchan(widget.stackchanIpAddress).hasFaceApi()) {
-        setState(() {
-          _initialized = true;
-        });
+        ref.read(_initializedProvider.notifier).state = true;
       } else {
-        setState(() {
-          _statusMessage = "設定できません。";
-        });
+        ref.read(_statusMessageProvider.notifier).state = "設定できません。";
       }
     } finally {
-      setState(() {
-        _updating = false;
-      });
+      ref.read(_updatingProvider.notifier).state = false;
     }
   }
 
-  void _updateFace(int value) async {
-    if (_updating) return;
+  Future<void> _updateFace(int value) async {
+    if (ref.read(_updatingProvider)) return;
 
-    setState(() {
-      _updating = true;
-      _statusMessage = "";
-    });
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
     try {
       await Stackchan(widget.stackchanIpAddress).face("$value");
     } catch (e) {
-      setState(() {
-        _statusMessage = "Error: ${e.toString()}";
-      });
+      ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
-      setState(() {
-        _updating = false;
-      });
+      ref.read(_updatingProvider.notifier).state = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final initialized = ref.watch(_initializedProvider);
+    final updating = ref.watch(_updatingProvider);
+    final statusMessage = ref.watch(_statusMessageProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
@@ -81,7 +74,7 @@ class _FacePageState extends State<FacePage> {
           children: [
             Expanded(
               child: Visibility(
-                visible: _initialized,
+                visible: initialized,
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -154,14 +147,14 @@ class _FacePageState extends State<FacePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: _statusMessage.isNotEmpty,
+                    visible: statusMessage.isNotEmpty,
                     child: Text(
-                      _statusMessage,
+                      statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: _updating,
+                    visible: updating,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: LinearProgressIndicator(),

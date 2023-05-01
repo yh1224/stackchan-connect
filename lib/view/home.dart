@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/link.dart';
 
@@ -7,19 +8,19 @@ import 'control/face.dart';
 import 'control/speech.dart';
 import 'setting/menu.dart';
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  ConsumerState<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends ConsumerState<MyHomePage> {
   /// 初期化完了
-  bool _initialized = false;
+  final _initializedProvider = StateProvider((ref) => false);
 
   /// ｽﾀｯｸﾁｬﾝ IP アドレス
-  String _stackchanIpAddress = "";
+  final _stackchanIpAddressProvider = StateProvider((ref) => "");
 
   @override
   void initState() {
@@ -27,16 +28,17 @@ class _MyHomePageState extends State<MyHomePage> {
     _init();
   }
 
-  void _init() async {
+  Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
-      _initialized = true;
-    });
+    ref.read(_stackchanIpAddressProvider.notifier).state = prefs.getString("stackchanIpAddress") ?? "";
+    ref.read(_initializedProvider.notifier).state = true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final initialized = ref.watch(_initializedProvider);
+    final stackchanIpAddress = ref.watch(_stackchanIpAddressProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
@@ -78,14 +80,14 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: GestureDetector(
         child: Visibility(
-          visible: _initialized,
+          visible: initialized,
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
                   Visibility(
-                    visible: _stackchanIpAddress.isNotEmpty,
+                    visible: stackchanIpAddress.isNotEmpty,
                     child: Column(
                       children: [
                         Card(
@@ -95,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             leading: const Icon(Icons.message, size: 48),
                             onTap: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => ChatPage(_stackchanIpAddress)));
+                                  .push(MaterialPageRoute(builder: (context) => ChatPage(stackchanIpAddress)));
                             },
                           ),
                         ),
@@ -106,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             leading: const Icon(Icons.volume_up, size: 48),
                             onTap: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => SpeechPage(_stackchanIpAddress)));
+                                  .push(MaterialPageRoute(builder: (context) => SpeechPage(stackchanIpAddress)));
                             },
                           ),
                         ),
@@ -117,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             leading: const Icon(Icons.face, size: 48),
                             onTap: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => FacePage(_stackchanIpAddress)));
+                                  .push(MaterialPageRoute(builder: (context) => FacePage(stackchanIpAddress)));
                             },
                           ),
                         ),

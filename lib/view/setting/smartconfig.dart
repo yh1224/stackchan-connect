@@ -1,45 +1,48 @@
 import 'package:esp_smartconfig/esp_smartconfig.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class SmartConfigPage extends StatefulWidget {
+class SmartConfigPage extends ConsumerStatefulWidget {
   const SmartConfigPage({super.key});
 
   @override
-  State<SmartConfigPage> createState() => _SmartConfigPageState();
+  ConsumerState<SmartConfigPage> createState() => _SmartConfigPageState();
 }
 
-class _SmartConfigPageState extends State<SmartConfigPage> {
-  /// ステータスメッセージ
-  String _statusMessage = "";
-
+class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
   /// SmartConfig Provisioner
   Provisioner? _provisioner;
 
+  /// ステータスメッセージ
+  final _statusMessageProvider = StateProvider((ref) => "");
+
   /// Provision 実行中
-  bool _provisioning = false;
+  final _provisioningProvider = StateProvider((ref) => false);
 
   /// 接続中の SSID
-  String? _wifiSsid;
+  final _wifiSsidProvider = StateProvider<String?>((ref) => null);
 
   /// 接続中の BSSID
-  String? _wifiBssid;
+  final _wifiBssidProvider = StateProvider<String?>((ref) => null);
 
   /// Wi-Fi パスワード入力
   final _wifiPassphraseTextArea = TextEditingController();
-  bool _isWifiPassphraseObscure = true;
+  final _isWifiPassphraseObscureProvider = StateProvider((ref) => true);
 
   /// IP アドレス取得結果
-  String? _resultIpAddress;
+  final _resultIpAddressProvider = StateProvider<String?>((ref) => null);
 
   @override
   void initState() {
     super.initState();
-    _init();
+    Future(() async {
+      await _init();
+    });
   }
 
-  void _init() async {
+  Future<void> _init() async {
     final networkInfo = NetworkInfo();
     final locationStatus = await Permission.location.status;
     if (locationStatus.isDenied) {
@@ -53,10 +56,8 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
       ssid = ssid.substring(1, ssid.length - 1);
     }
     final bssid = await networkInfo.getWifiBSSID();
-    setState(() {
-      _wifiSsid = ssid;
-      _wifiBssid = bssid;
-    });
+    ref.read(_wifiSsidProvider.notifier).state = ssid;
+    ref.read(_wifiBssidProvider.notifier).state = bssid;
   }
 
   @override
@@ -65,68 +66,56 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
     super.deactivate();
   }
 
-  void _startProvision() async {
+  Future<void> _startProvision() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    setState(() {
-      _statusMessage = "設定をおこなっています...\n電源を入れてしばらくお待ち下さい。";
-      _provisioning = true;
-    });
+    ref.read(_statusMessageProvider.notifier).state = "設定をおこなっています...\n電源を入れてしばらくお待ち下さい。";
+    ref.read(_provisioningProvider.notifier).state = true;
     try {
       _provisioner = Provisioner.espTouch();
       _provisioner!.listen((response) {
         debugPrint("Device ${response.bssidText} connected to WiFi!");
-        setState(() {
-          _provisioner?.stop();
-          _provisioning = false;
-        });
+        _provisioner?.stop();
+        ref.read(_provisioningProvider.notifier).state = false;
         if (response.ipAddressText != null) {
-          setState(() {
-            _statusMessage = "${response.ipAddressText} が接続されました。";
-            _resultIpAddress = response.ipAddressText;
-          });
+          ref.read(_statusMessageProvider.notifier).state = "${response.ipAddressText} が接続されました。";
+          ref.read(_resultIpAddressProvider.notifier).state = response.ipAddressText;
         }
       }, onError: (e) {
-        setState(() {
-          _statusMessage = "エラー\n${e.toString()}";
-        });
+        ref.read(_statusMessageProvider.notifier).state = "エラー\n${e.toString()}";
       }, onDone: () {
         debugPrint("Done");
       });
       await _provisioner!.start(ProvisioningRequest.fromStrings(
-        ssid: _wifiSsid!,
-        bssid: _wifiBssid!,
+        ssid: ref.read(_wifiSsidProvider)!,
+        bssid: ref.read(_wifiBssidProvider)!,
         password: _wifiPassphraseTextArea.text.trim(),
       ));
     } catch (e) {
-      setState(() {
-        _statusMessage = "処理が開始できませんでした。\n${e.toString()}";
-        _provisioning = false;
-      });
+      ref.read(_statusMessageProvider.notifier).state = "処理が開始できませんでした。\n${e.toString()}";
+      ref.read(_provisioningProvider.notifier).state = false;
     }
   }
 
   void _stopProvision() {
     _provisioner?.stop();
-    setState(() {
-      _statusMessage = "";
-      _provisioning = false;
-    });
+    ref.read(_statusMessageProvider.notifier).state = "";
+    ref.read(_provisioningProvider.notifier).state = false;
   }
 
   void _close() {
-    Navigator.of(context).pop(_resultIpAddress);
-  }
-
-  bool _isWifiConnected() {
-    return _wifiSsid != null && _wifiBssid != null;
-  }
-
-  bool _canProvision() {
-    return _isWifiConnected() && _wifiPassphraseTextArea.text.trim().isNotEmpty;
+    Navigator.of(context).pop(ref.read(_resultIpAddressProvider));
   }
 
   @override
   Widget build(BuildContext context) {
+    final statusMessage = ref.watch(_statusMessageProvider);
+    final provisioning = ref.watch(_provisioningProvider);
+    final wifiSsid = ref.watch(_wifiSsidProvider);
+    final wifiBssid = ref.watch(_wifiBssidProvider);
+    final isWifiPassphraseObscure = ref.watch(_isWifiPassphraseObscureProvider);
+    final resultIpAddress = ref.watch(_resultIpAddressProvider);
+    final isWifiConnected = wifiSsid != null && wifiBssid != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("SmartConfig"),
@@ -151,7 +140,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                       ),
                       const SizedBox(height: 20.0),
                       Visibility(
-                        visible: _isWifiConnected(),
+                        visible: isWifiConnected,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -171,7 +160,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                                             .copyWith(fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                        "$_wifiSsid",
+                                        "$wifiSsid",
                                         textAlign: TextAlign.left,
                                         style: Theme.of(context).textTheme.bodyLarge,
                                       ),
@@ -191,7 +180,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                                             .copyWith(fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                        "$_wifiBssid",
+                                        "$wifiBssid",
                                         textAlign: TextAlign.left,
                                         style: Theme.of(context).textTheme.bodyLarge,
                                       ),
@@ -201,19 +190,17 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                   child: TextFormField(
-                                    obscureText: _isWifiPassphraseObscure,
-                                    readOnly: _provisioning,
+                                    obscureText: isWifiPassphraseObscure,
+                                    readOnly: provisioning,
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8.0),
                                       ),
                                       labelText: "パスフレーズ",
                                       suffixIcon: IconButton(
-                                        icon: Icon(_isWifiPassphraseObscure ? Icons.visibility_off : Icons.visibility),
+                                        icon: Icon(isWifiPassphraseObscure ? Icons.visibility_off : Icons.visibility),
                                         onPressed: () {
-                                          setState(() {
-                                            _isWifiPassphraseObscure = !_isWifiPassphraseObscure;
-                                          });
+                                          ref.read(_isWifiPassphraseObscureProvider.notifier).update((state) => !state);
                                         },
                                       ),
                                     ),
@@ -237,7 +224,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
               ),
             ),
             Visibility(
-              visible: _provisioning,
+              visible: provisioning,
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -258,23 +245,25 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Visibility(
-                    visible: _statusMessage.isNotEmpty,
+                    visible: statusMessage.isNotEmpty,
                     child: Text(
-                      _statusMessage,
+                      statusMessage,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Visibility(
-                    visible: _resultIpAddress == null,
+                    visible: resultIpAddress == null,
                     child: SizedBox(
                       width: double.infinity,
                       child: ValueListenableBuilder(
                         valueListenable: _wifiPassphraseTextArea,
                         builder: (context, value, child) {
                           return ElevatedButton(
-                            onPressed: _canProvision() ? (_provisioning ? _stopProvision : _startProvision) : null,
+                            onPressed: (isWifiConnected && _wifiPassphraseTextArea.text.trim().isNotEmpty)
+                                ? (provisioning ? _stopProvision : _startProvision)
+                                : null,
                             child: Text(
-                              _provisioning ? "キャンセル" : "設定開始",
+                              provisioning ? "キャンセル" : "設定開始",
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           );
@@ -283,7 +272,7 @@ class _SmartConfigPageState extends State<SmartConfigPage> {
                     ),
                   ),
                   Visibility(
-                    visible: _resultIpAddress != null,
+                    visible: resultIpAddress != null,
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
