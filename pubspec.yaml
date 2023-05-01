@@ -45,6 +45,7 @@ dependencies:
   permission_handler: ^10.2.0
   sqflite: ^2.2.6
   http_retry: ^0.2.0
+  flutter_riverpod: ^2.3.6
 
 dev_dependencies:
   flutter_test:
