@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infrastructure/stackchan.dart';
+import '../../repository/stackchan.dart';
 
 class SettingStackchanPage extends ConsumerStatefulWidget {
-  const SettingStackchanPage(this.stackchanIpAddress, {super.key});
+  const SettingStackchanPage(this.stackchanConfigProvider, {super.key});
 
-  final String stackchanIpAddress;
+  final StateProvider<StackchanConfig> stackchanConfigProvider;
 
   @override
   ConsumerState<SettingStackchanPage> createState() => _SettingStackchanPageState();
@@ -36,8 +36,8 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
   }
 
   Future<void> _restoreSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    ref.read(_volumeProvider.notifier).state = prefs.getInt("volume") ?? 255;
+    ref.read(_volumeProvider.notifier).state =
+        (ref.read(widget.stackchanConfigProvider).config["volume"] ?? 255) as int;
   }
 
   // check existence of apikey setting page
@@ -45,7 +45,7 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      if (await Stackchan(widget.stackchanIpAddress).hasSettingApi()) {
+      if (await Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress).hasSettingApi()) {
         ref.read(_initializedProvider.notifier).state = true;
       } else {
         ref.read(_statusMessageProvider.notifier).state = "設定できません。";
@@ -58,14 +58,11 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
   Future<void> _updateVolume() async {
     if (ref.read(_updatingProvider)) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt("volume", ref.read(_volumeProvider));
-    final voice = prefs.getString("voice");
-
+    final voice = ref.read(widget.stackchanConfigProvider).config["voice"] as String?;
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      final stackchan = Stackchan(widget.stackchanIpAddress);
+      final stackchan = Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress);
       await stackchan.setting(volume: "${ref.read(_volumeProvider)}");
       await stackchan.speech("音量を${ref.read(_volumeProvider)}に設定しました。", voice: voice);
       ref.read(_statusMessageProvider.notifier).state = "設定しました。";
@@ -74,6 +71,11 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
     } finally {
       ref.read(_updatingProvider.notifier).state = false;
     }
+
+    final stackchanConfig = ref.read(widget.stackchanConfigProvider);
+    final config = stackchanConfig.config;
+    config["volume"] = ref.read(_volumeProvider);
+    ref.read(widget.stackchanConfigProvider.notifier).state = stackchanConfig.copyWith(config: config);
   }
 
   @override

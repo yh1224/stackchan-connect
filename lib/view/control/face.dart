@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../infrastructure/stackchan.dart';
+import '../../repository/stackchan.dart';
 
 class FacePage extends ConsumerStatefulWidget {
-  const FacePage(this.stackchanIpAddress, {super.key});
+  const FacePage(this.stackchanConfig, {super.key});
 
-  final String stackchanIpAddress;
+  final StackchanConfig stackchanConfig;
 
   @override
   ConsumerState<FacePage> createState() => _FacePageState();
@@ -35,7 +36,7 @@ class _FacePageState extends ConsumerState<FacePage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      if (await Stackchan(widget.stackchanIpAddress).hasFaceApi()) {
+      if (await Stackchan(widget.stackchanConfig.ipAddress).hasFaceApi()) {
         ref.read(_initializedProvider.notifier).state = true;
       } else {
         ref.read(_statusMessageProvider.notifier).state = "設定できません。";
@@ -51,7 +52,7 @@ class _FacePageState extends ConsumerState<FacePage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      await Stackchan(widget.stackchanIpAddress).face("$value");
+      await Stackchan(widget.stackchanConfig.ipAddress).face("$value");
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
@@ -66,9 +67,6 @@ class _FacePageState extends ConsumerState<FacePage> {
     final statusMessage = ref.watch(_statusMessageProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
-      ),
       body: GestureDetector(
         child: Column(
           children: [

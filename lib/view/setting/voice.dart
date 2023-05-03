@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infrastructure/stackchan.dart';
+import '../../repository/stackchan.dart';
 
 class SettingVoicePage extends ConsumerStatefulWidget {
-  final String stackchanIpAddress;
+  const SettingVoicePage(this.stackchanConfigProvider, {super.key});
 
-  const SettingVoicePage(this.stackchanIpAddress, {super.key});
+  final StateProvider<StackchanConfig> stackchanConfigProvider;
 
   @override
   ConsumerState<SettingVoicePage> createState() => _SettingVoicePageState();
@@ -32,15 +32,15 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
   }
 
   Future<void> _restoreSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    ref.read(_voiceProvider.notifier).state = prefs.getString("voice");
+    ref.read(_voiceProvider.notifier).state = ref.read(widget.stackchanConfigProvider).config["voice"] as String?;
   }
 
   Future<void> _test() async {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      await Stackchan(widget.stackchanIpAddress).speech("こんにちは。私の声はいかがですか", voice: ref.read(_voiceProvider));
+      await Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress)
+          .speech("こんにちは。私の声はいかがですか", voice: ref.read(_voiceProvider));
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
@@ -49,12 +49,10 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
   }
 
   Future<void> _close() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (ref.read(_voiceProvider) == null) {
-      await prefs.remove("voice");
-    } else {
-      await prefs.setString("voice", ref.read(_voiceProvider)!);
-    }
+    final stackchanConfig = ref.read(widget.stackchanConfigProvider);
+    final config = stackchanConfig.config;
+    config["voice"] = ref.read(_voiceProvider);
+    ref.read(widget.stackchanConfigProvider.notifier).state = stackchanConfig.copyWith(config: config);
     if (context.mounted) {
       Navigator.of(context).pop();
     }

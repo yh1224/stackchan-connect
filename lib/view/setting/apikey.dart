@@ -8,11 +8,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../infrastructure/openai.dart';
 import '../../infrastructure/stackchan.dart';
 import '../../infrastructure/voicetext.dart';
+import '../../repository/stackchan.dart';
 
 class SettingApiKeyPage extends ConsumerStatefulWidget {
-  const SettingApiKeyPage(this.stackchanIpAddress, {super.key});
+  const SettingApiKeyPage(this.stackchanConfig, {super.key});
 
-  final String stackchanIpAddress;
+  final StackchanConfig stackchanConfig;
 
   @override
   ConsumerState<SettingApiKeyPage> createState() => _SettingApiKeyPageState();
@@ -71,7 +72,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      if (await Stackchan(widget.stackchanIpAddress).hasApiKeysApi()) {
+      if (await Stackchan(widget.stackchanConfig.ipAddress).hasApiKeysApi()) {
         ref.read(_initializedProvider.notifier).state = true;
       } else {
         ref.read(_statusMessageProvider.notifier).state = "設定できません。";
@@ -137,7 +138,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      await Stackchan(widget.stackchanIpAddress).setApiKeys(openai: openaiApiKey, voicetext: voicetextApiKey);
+      await Stackchan(widget.stackchanConfig.ipAddress).setApiKeys(openai: openaiApiKey, voicetext: voicetextApiKey);
       ref.read(_statusMessageProvider.notifier).state = "設定しました。";
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
@@ -180,6 +181,10 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           text: TextSpan(
                             children: [
                               TextSpan(
+                                text: "ｽﾀｯｸﾁｬﾝ と会話するために、",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              TextSpan(
                                 text: "OpenAI",
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
@@ -189,7 +194,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                                   },
                               ),
                               TextSpan(
-                                text: " から API Key を発行し、入力してください。",
+                                text: " から ChatGPT を使用するための API Key を発行して、設定してください。",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -244,7 +249,11 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                                   },
                               ),
                               TextSpan(
-                                text: " から API Key を発行し、入力してください。",
+                                text: " から API Key を発行して、設定してください。",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              TextSpan(
+                                text: "★現在無料版の新規登録は停止しています。Google TTS 版 AI ｽﾀｯｸﾁｬﾝ では、この設定は不要です。",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infrastructure/stackchan.dart';
 import '../../repository/speech.dart';
+import '../../repository/stackchan.dart';
 
 class SpeechPage extends ConsumerStatefulWidget {
-  const SpeechPage(this.stackchanIpAddress, {super.key});
+  const SpeechPage(this.stackchanConfig, {super.key});
 
-  final String stackchanIpAddress;
+  final StackchanConfig stackchanConfig;
 
   @override
   ConsumerState<SpeechPage> createState() => _SpeechPageState();
@@ -75,12 +75,11 @@ class _SpeechPageState extends ConsumerState<SpeechPage> {
     if (append) {
       _appendMessage(message);
     }
-    var prefs = await SharedPreferences.getInstance();
-    final voice = prefs.getString("voice");
+    final voice = widget.stackchanConfig.config["voice"] as String?;
     ref.read(_statusMessageProvider.notifier).state = "";
     ref.read(_updatingProvider.notifier).state = true;
     try {
-      final stackchan = Stackchan(widget.stackchanIpAddress);
+      final stackchan = Stackchan(widget.stackchanConfig.ipAddress);
       await stackchan.speech(message, voice: voice);
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
@@ -105,9 +104,6 @@ class _SpeechPageState extends ConsumerState<SpeechPage> {
     final messages = ref.watch(_messagesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
-      ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         behavior: HitTestBehavior.opaque,

@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../infrastructure/stackchan.dart';
+import '../../repository/stackchan.dart';
 
 class SettingRolePage extends ConsumerStatefulWidget {
-  const SettingRolePage(this.stackchanIpAddress, {super.key});
+  const SettingRolePage(this.stackchanConfig, {super.key});
 
-  final String stackchanIpAddress;
+  final StackchanConfig stackchanConfig;
 
   @override
   ConsumerState<SettingRolePage> createState() => _SettingRolePageState();
@@ -51,7 +52,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      final roles = await Stackchan(widget.stackchanIpAddress).getRoles();
+      final roles = await Stackchan(widget.stackchanConfig.ipAddress).getRoles();
       for (var i = 0; i < min(_roleTextAreas.length, roles.length); i++) {
         _roleTextAreas[i].text = roles[i];
       }
@@ -76,7 +77,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
     final roles =
         _roleTextAreas.map((roleTextArea) => roleTextArea.text.trim()).where((text) => text.isNotEmpty).toList();
     try {
-      await Stackchan(widget.stackchanIpAddress).setRoles(roles);
+      await Stackchan(widget.stackchanConfig.ipAddress).setRoles(roles);
       ref.read(_statusMessageProvider.notifier).state = "設定しました。";
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";

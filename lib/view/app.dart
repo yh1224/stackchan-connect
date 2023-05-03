@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stackchan_connect/view/home.dart';
 
-import 'home.dart';
+import 'control/tabs.dart';
 
 class MyAppState extends ChangeNotifier {}
 
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           colorSchemeSeed: Colors.teal,
         ),
-        home: const MyHomePage(),
+        home: const AppHomePage(),
       ),
     );
   }

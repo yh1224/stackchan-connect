@@ -1,147 +1,159 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/link.dart';
 
-import 'control/chat.dart';
-import 'control/face.dart';
-import 'control/speech.dart';
-import 'setting/menu.dart';
+import '../repository/stackchan.dart';
+import 'control/tabs.dart';
+import 'drawer.dart';
 
-class MyHomePage extends ConsumerStatefulWidget {
-  const MyHomePage({super.key});
+class AppHomePage extends ConsumerStatefulWidget {
+  const AppHomePage({super.key});
 
   @override
-  ConsumerState<MyHomePage> createState() => _MyHomePageState();
+  ConsumerState<AppHomePage> createState() => _AppHomePageState();
 }
 
-class _MyHomePageState extends ConsumerState<MyHomePage> {
-  /// 初期化完了
-  final _initializedProvider = StateProvider((ref) => false);
+class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderStateMixin {
+  /// ｽﾀｯｸﾁｬﾝ 設定リポジトリ
+  final _stackchanRepository = StackchanRepository();
 
-  /// ｽﾀｯｸﾁｬﾝ IP アドレス
-  final _stackchanIpAddressProvider = StateProvider((ref) => "");
+  /// ｽﾀｯｸﾁｬﾝ 設定
+  final _stackchanConfigProviderListProvider = StateProvider<List<StateProvider<StackchanConfig>>>((ref) => []);
+
+  /// タップ位置
+  Offset? _tapPosition;
 
   @override
   void initState() {
     super.initState();
-    _init();
+    Future(() async {
+      await _migrate();
+      await _init();
+    });
+  }
+
+  // Preference から移行
+  Future<void> _migrate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
+    if (stackchanIpAddress.isNotEmpty) {
+      await _newStackchanConfig(ipAddress: stackchanIpAddress, config: {
+        "voice": prefs.getString("voice"),
+        "volume": prefs.getInt("volume"),
+      });
+      prefs.remove("stackchanIpAddress");
+      prefs.remove("voice");
+      prefs.remove("volume");
+    }
   }
 
   Future<void> _init() async {
-    final prefs = await SharedPreferences.getInstance();
-    ref.read(_stackchanIpAddressProvider.notifier).state = prefs.getString("stackchanIpAddress") ?? "";
-    ref.read(_initializedProvider.notifier).state = true;
+    final stackchanConfigs = await _stackchanRepository.getStackchanConfigs();
+    if (stackchanConfigs.isNotEmpty) {
+      ref.read(_stackchanConfigProviderListProvider.notifier).state =
+          stackchanConfigs.map((c) => StateProvider<StackchanConfig>((ref) => c)).toList();
+    } else {
+      await _newStackchanConfig();
+    }
+  }
+
+  Future<void> _newStackchanConfig({String ipAddress = "", Map<String, Object?> config = const {}}) async {
+    final stackchanConfig = await _stackchanRepository
+        .save(StackchanConfig(name: "ｽﾀｯｸﾁｬﾝ", ipAddress: ipAddress, config: config));
+    final stackchanConfigProviderList = ref.read(_stackchanConfigProviderListProvider);
+    stackchanConfigProviderList.add(StateProvider((ref) => stackchanConfig));
+    ref.read(_stackchanConfigProviderListProvider.notifier).state = List.from(stackchanConfigProviderList);
+  }
+
+  Future<void> _removeStackchanConfig(StateProvider<StackchanConfig> stackchanConfigProvider) async {
+    final stackchanConfigProviderList = ref.read(_stackchanConfigProviderListProvider);
+    stackchanConfigProviderList.remove(stackchanConfigProvider);
+    _stackchanRepository.remove(ref.read(stackchanConfigProvider));
+    ref.read(_stackchanConfigProviderListProvider.notifier).state = List.from(stackchanConfigProviderList);
+  }
+
+  void _getTapPosition(TapDownDetails tapPosition) {
+    final RenderBox referenceBox = context.findRenderObject() as RenderBox;
+    _tapPosition = referenceBox.globalToLocal(tapPosition.globalPosition);
   }
 
   @override
   Widget build(BuildContext context) {
-    final initialized = ref.watch(_initializedProvider);
-    final stackchanIpAddress = ref.watch(_stackchanIpAddressProvider);
+    final stackchanConfigList = ref.watch(_stackchanConfigProviderListProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
+        actions: [
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem(
+                  child: const Text("追加"),
+                  onTap: () {
+                    _newStackchanConfig();
+                  },
+                )
+              ];
+            },
+          )
+        ],
       ),
-      drawer: Drawer(
-        child: ListView(
+      drawer: const AppDrawer(),
+      body: GestureDetector(
+        child: Column(
           children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
-              child: Text(
-                "ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ",
-                style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: stackchanConfigList
+                        .map(
+                          (stackchanConfigProvider) => GestureDetector(
+                            onTapDown: _getTapPosition,
+                            child: Card(
+                              child: ListTile(
+                                title: Text(
+                                  ref.watch(stackchanConfigProvider).name,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                                subtitle: Text(ref.watch(stackchanConfigProvider).ipAddress),
+                                trailing: const Icon(Icons.arrow_forward_ios),
+                                leading: const Icon(Icons.sentiment_neutral, size: 48),
+                                onTap: () async {
+                                  await Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => ControlTabsPage(stackchanConfigProvider)));
+                                  _init();
+                                },
+                                onLongPress: () async {
+                                  HapticFeedback.mediumImpact();
+                                  if (_tapPosition == null) return;
+                                  final result = await showMenu(
+                                    context: context,
+                                    position: RelativeRect.fromLTRB(_tapPosition!.dx, _tapPosition!.dy, 0, 0),
+                                    items: [
+                                      const PopupMenuItem(
+                                        value: "remove",
+                                        child: Text("削除"),
+                                      ),
+                                    ],
+                                  );
+                                  if (result == "remove") {
+                                    _removeStackchanConfig(stackchanConfigProvider);
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
               ),
-            ),
-            Link(
-              uri: Uri.parse("https://notes.yh1224.com/stackchan-connect/"),
-              target: LinkTarget.blank,
-              builder: (BuildContext ctx, FollowLink? openLink) {
-                return ListTile(
-                  title: const Text("アプリについて／使い方"),
-                  onTap: openLink,
-                );
-              },
-            ),
-            Link(
-              uri: Uri.parse("https://notes.yh1224.com/privacy/"),
-              target: LinkTarget.blank,
-              builder: (BuildContext ctx, FollowLink? openLink) {
-                return ListTile(
-                  title: const Text("プライバシーポリシー"),
-                  onTap: openLink,
-                );
-              },
             ),
           ],
-        ),
-      ),
-      body: GestureDetector(
-        child: Visibility(
-          visible: initialized,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Visibility(
-                    visible: stackchanIpAddress.isNotEmpty,
-                    child: Column(
-                      children: [
-                        Card(
-                          child: ListTile(
-                            title: Text("おしゃべり", style: Theme.of(context).textTheme.titleLarge),
-                            subtitle: Text("ｽﾀｯｸﾁｬﾝ とお話します。", style: Theme.of(context).textTheme.titleMedium),
-                            leading: const Icon(Icons.message, size: 48),
-                            onTap: () {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => ChatPage(stackchanIpAddress)));
-                            },
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("しゃべって", style: Theme.of(context).textTheme.titleLarge),
-                            subtitle: Text("ｽﾀｯｸﾁｬﾝ にしゃべってもらいます。", style: Theme.of(context).textTheme.titleMedium),
-                            leading: const Icon(Icons.volume_up, size: 48),
-                            onTap: () {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => SpeechPage(stackchanIpAddress)));
-                            },
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("表情変更", style: Theme.of(context).textTheme.titleLarge),
-                            subtitle: Text("ｽﾀｯｸﾁｬﾝ の表情を変えます。", style: Theme.of(context).textTheme.titleMedium),
-                            leading: const Icon(Icons.face, size: 48),
-                            onTap: () {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (context) => FacePage(stackchanIpAddress)));
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Card(
-                    child: ListTile(
-                      title: Text("設定", style: Theme.of(context).textTheme.titleLarge),
-                      subtitle: Text("ｽﾀｯｸﾁｬﾝ を接続・設定します。", style: Theme.of(context).textTheme.titleMedium),
-                      leading: const Icon(Icons.settings, size: 48),
-                      onTap: () async {
-                        await Navigator.of(context)
-                            .push(MaterialPageRoute(builder: (context) => const SettingMenuPage()));
-                        _init();
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

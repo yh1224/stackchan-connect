@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 
 class ChatMessage {
@@ -11,26 +12,75 @@ class ChatMessage {
   final String text;
 
   ChatMessage({this.id, required this.createdAt, required this.kind, required this.text});
+
+  ChatMessage copyWith({
+    int? id,
+    DateTime? createdAt,
+    String? kind,
+    String? text,
+  }) =>
+      ChatMessage(
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        kind: kind ?? this.kind,
+        text: text ?? this.text,
+      );
 }
 
 class ChatRepository {
   static const String dbFileName = "messages.db";
   static const String tableName = "messages";
 
+  static const List<List<String>> migration = [
+    [
+      """
+      CREATE TABLE $tableName (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        kind TEXT,
+        text TEXT
+      );
+      """,
+    ],
+    [
+      "ALTER TABLE $tableName ADD COLUMN stackchan_id INTEGER;",
+      "UPDATE $tableName SET stackchan_id = 1;",
+    ],
+  ];
+
+  Future<void> _migrate(Database db, int oldVersion, int newVersion) async {
+    for (var i = oldVersion + 1; i <= newVersion; i++) {
+      for (var query in migration[i - 1]) {
+        debugPrint("$dbFileName: migrate to version $i \"$query\"");
+        await db.execute(query);
+      }
+    }
+  }
+
   Future<Database> get db async {
     return await openDatabase(
       dbFileName,
-      onCreate: (db, version) {
-        return db.execute(
-          "CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, kind TEXT, text TEXT)",
-        );
+      onCreate: (Database db, int version) async {
+        await _migrate(db, 0, version);
       },
-      version: 1,
+      onUpgrade: _migrate,
+      onDowngrade: (Database db, int oldVersion, int newVersion) async {
+        // DB 作り直し
+        await db.execute("DROP TABLE $tableName");
+        await _migrate(db, 0, newVersion);
+      },
+      version: migration.length,
     );
   }
 
-  Future<List<ChatMessage>> getMessages(int limit) async {
-    final messages = await (await db).query(tableName, orderBy: "created_at", limit: limit);
+  Future<List<ChatMessage>> getMessages(int stackchanId, int limit) async {
+    final messages = await (await db).query(
+      tableName,
+      where: "stackchan_id = ?",
+      whereArgs: [stackchanId],
+      orderBy: "created_at",
+      limit: limit,
+    );
     return List.generate(messages.length, (i) {
       return ChatMessage(
         id: messages[i]["id"] as int,
@@ -41,12 +91,14 @@ class ChatRepository {
     });
   }
 
-  Future<void> append(ChatMessage message) async {
-    await (await db).insert(tableName, {
+  Future<ChatMessage> append(int stackchanId, ChatMessage message) async {
+    final id = await (await db).insert(tableName, {
       "created_at": message.createdAt.toUtc().toIso8601String(),
+      "stackchan_id": stackchanId,
       "kind": message.kind,
       "text": message.text,
     });
+    return message.copyWith(id: id);
   }
 
   Future<void> clearAll() async {
@@ -67,11 +119,14 @@ class ChatRepository {
   Future<void> prepareTestData() async {
     await clearAll();
     for (int i = 0; i < testMessages.length; i++) {
-      await append(ChatMessage(
-        createdAt: DateTime.now(),
-        kind: (i % 2 == 0) ? ChatMessage.kindRequest : ChatMessage.kindReply,
-        text: testMessages[i],
-      ));
+      await append(
+        1,
+        ChatMessage(
+          createdAt: DateTime.now(),
+          kind: (i % 2 == 0) ? ChatMessage.kindRequest : ChatMessage.kindReply,
+          text: testMessages[i],
+        ),
+      );
     }
   }
 }

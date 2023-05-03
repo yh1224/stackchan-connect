@@ -2,24 +2,29 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../infrastructure/stackchan.dart';
+import '../../repository/stackchan.dart';
 import 'smartconfig.dart';
 
-class SettingIpAddressPage extends ConsumerStatefulWidget {
-  const SettingIpAddressPage({super.key});
+class SettingIpConfigPage extends ConsumerStatefulWidget {
+  const SettingIpConfigPage(this.stackchanConfigProvider, {super.key});
+
+  final StateProvider<StackchanConfig> stackchanConfigProvider;
 
   @override
-  ConsumerState<SettingIpAddressPage> createState() => _SettingIpAddressPageState();
+  ConsumerState<SettingIpConfigPage> createState() => _SettingIpAddressPageState();
 }
 
-class _SettingIpAddressPageState extends ConsumerState<SettingIpAddressPage> {
+class _SettingIpAddressPageState extends ConsumerState<SettingIpConfigPage> {
   /// 設定更新中
   final _updatingProvider = StateProvider((ref) => false);
 
   /// ステータスメッセージ
   final _statusMessageProvider = StateProvider((ref) => "");
+
+  /// 名前入力
+  final _stackchanNameTextArea = TextEditingController();
 
   /// IP アドレス入力
   final _stackchanIpAddressTextArea = TextEditingController();
@@ -27,20 +32,15 @@ class _SettingIpAddressPageState extends ConsumerState<SettingIpAddressPage> {
   @override
   void initState() {
     super.initState();
-    Future(() async {
-      await _restoreSettings();
-    });
+    _stackchanNameTextArea.text = ref.read(widget.stackchanConfigProvider).name;
+    _stackchanIpAddressTextArea.text = ref.read(widget.stackchanConfigProvider).ipAddress;
   }
 
   @override
   void dispose() {
+    _stackchanNameTextArea.dispose();
     _stackchanIpAddressTextArea.dispose();
     super.dispose();
-  }
-
-  Future<void> _restoreSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    _stackchanIpAddressTextArea.text = prefs.getString("stackchanIpAddress") ?? "";
   }
 
   Future<void> _test() async {
@@ -74,10 +74,14 @@ class _SettingIpAddressPageState extends ConsumerState<SettingIpAddressPage> {
   }
 
   Future<void> _close() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("stackchanIpAddress", _stackchanIpAddressTextArea.text.trim());
+    final stackchanConfig = ref.read(widget.stackchanConfigProvider);
+    final newStackchanConfig = stackchanConfig.copyWith(
+      name: _stackchanNameTextArea.text.trim(),
+      ipAddress: _stackchanIpAddressTextArea.text.trim(),
+    );
+    ref.read(widget.stackchanConfigProvider.notifier).state = newStackchanConfig;
     if (context.mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(_stackchanIpAddressTextArea.text.trim());
     }
   }
 
@@ -101,6 +105,26 @@ class _SettingIpAddressPageState extends ConsumerState<SettingIpAddressPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "この ｽﾀｯｸﾁｬﾝ に名前をつけてください。",
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              controller: _stackchanNameTextArea,
+                              decoration: const InputDecoration(
+                                hintText: "名前",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(

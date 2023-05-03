@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../infrastructure/stackchan.dart';
 import '../../repository/chat.dart';
+import '../../repository/stackchan.dart';
 
 class ChatBubble extends StatelessWidget {
   const ChatBubble({
@@ -49,9 +49,9 @@ class ChatBubble extends StatelessWidget {
 }
 
 class ChatPage extends ConsumerStatefulWidget {
-  const ChatPage(this.stackchanIpAddress, {super.key});
+  const ChatPage(this.stackchanConfig, {super.key});
 
-  final String stackchanIpAddress;
+  final StackchanConfig stackchanConfig;
 
   @override
   ConsumerState<ChatPage> createState() => _ChatPageState();
@@ -92,7 +92,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   Future<void> _init() async {
     // await messageRepository.prepareTestData();
-    final messages = await _messageRepository.getMessages(maxMessages);
+    final messages = await _messageRepository.getMessages(widget.stackchanConfig.id!, maxMessages);
     ref.read(_messagesProvider.notifier).state = messages;
   }
 
@@ -102,14 +102,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     super.dispose();
   }
 
-  void _clearMessages() {
-    _messageRepository.clearAll();
-    ref.read(_messagesProvider.notifier).state = [];
-  }
-
   Future<void> _appendMessage(String kind, String text) async {
     final message = ChatMessage(createdAt: DateTime.now(), kind: kind, text: text);
-    _messageRepository.append(message);
+    _messageRepository.append(widget.stackchanConfig.id!, message);
     final messages = ref.read(_messagesProvider);
     if (messages.length >= maxMessages) {
       messages.removeAt(0);
@@ -177,13 +172,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   // ｽﾀｯｸﾁｬﾝ API を呼ぶ
   Future<void> _callStackchan() async {
     await _stopListening();
-    var prefs = await SharedPreferences.getInstance();
-    final voice = prefs.getString("voice");
+    final voice = widget.stackchanConfig.config["voice"] as String?;
     try {
       final request = _textArea.text.trim();
       _textArea.clear();
       ref.read(_updatingProvider.notifier).state = true;
-      final stackchan = Stackchan(widget.stackchanIpAddress);
+      final stackchan = Stackchan(widget.stackchanConfig.ipAddress);
       _appendMessage(ChatMessage.kindRequest, request);
       final reply = await stackchan.chat(request, voice: voice);
       _appendMessage(ChatMessage.kindReply, reply);
@@ -192,11 +186,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     } finally {
       ref.read(_updatingProvider.notifier).state = false;
     }
-  }
-
-  // 入力をクリア
-  void _clear() {
-    _textArea.clear();
   }
 
   @override
@@ -211,23 +200,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final messages = ref.watch(_messagesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
-        actions: [
-          PopupMenuButton(
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(
-                  child: const Text("クリア"),
-                  onTap: () {
-                    _clearMessages();
-                  },
-                )
-              ];
-            },
-          )
-        ],
-      ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         behavior: HitTestBehavior.opaque,
