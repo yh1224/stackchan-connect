@@ -81,6 +81,10 @@ class Stackchan extends StackchanInterface {
     if (si >= 0 && ei >= 0) {
       resultBody = resultBody.substring(si + 5, ei);
     }
+    if (resultBody == "null") {
+      // handle "null" response
+      return [];
+    }
     try {
       final result = jsonDecode(resultBody)["messages"]
           .where((message) => message["role"] == "system")
