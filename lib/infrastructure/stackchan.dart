@@ -99,6 +99,7 @@ class Stackchan extends StackchanInterface {
 
   @override
   Future<void> setRoles(List<String> roles) async {
+    await getRoles(); // 連続で POST すると正常にクリアされないため、一度 GET してから POST する
     await deleteRoles();
     for (var role in roles) {
       final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/role_set"), body: role);
