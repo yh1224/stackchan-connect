@@ -127,7 +127,7 @@ class Stackchan extends StackchanInterface {
     if (si >= 0 && ei >= 0) {
       resultBody = resultBody.substring(si + 6, ei);
     }
-    return resultBody;
+    return resultBody.trim();
   }
 
   @override
