@@ -86,10 +86,16 @@ class Stackchan extends StackchanInterface {
       return [];
     }
     try {
-      final result = jsonDecode(resultBody)["messages"]
-          .where((message) => message["role"] == "system")
-          .map((role) => role["content"] as String)
-          .toList();
+      final json = jsonDecode(resultBody);
+      List result = [];
+      if (json["roles"] != null) {
+        result = json["roles"].toList();
+      } else if (json["messages"] != null) {
+        result = json["messages"]
+            .where((message) => message["role"] == "system")
+            .map((message) => message["content"])
+            .toList();
+      }
       return List<String>.from(result);
     } catch (e) {
       debugPrint(e.toString());
