@@ -200,12 +200,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final messages = ref.watch(_messagesProvider);
 
     return Scaffold(
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          children: [
-            Expanded(
+      body: Column(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              behavior: HitTestBehavior.opaque,
               child: Column(
                 children: [
                   Expanded(
@@ -243,51 +243,51 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 ],
               ),
             ),
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Focus(
-                          onFocusChange: (hasFocus) {
-                            if (hasFocus) {
-                              _stopListening();
-                            }
-                          },
-                          child: TextField(
-                            controller: _textArea,
-                            keyboardType: TextInputType.multiline,
-                            maxLines: null,
-                          ),
+          ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            _stopListening();
+                          }
+                        },
+                        child: TextField(
+                          controller: _textArea,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
                         ),
                       ),
-                      ValueListenableBuilder(
-                        valueListenable: _textArea,
-                        builder: (context, value, child) {
-                          return IconButton(
-                            color: Theme.of(context).colorScheme.primary,
-                            icon: _textArea.text.trim().isEmpty
-                                ? (listening ? const Icon(Icons.stop) : const Icon(Icons.mic))
-                                : const Icon(Icons.send),
-                            onPressed: updating
-                                ? null
-                                : (_textArea.text.trim().isEmpty
-                                    ? listening
-                                        ? _stopListening
-                                        : _startListening
-                                    : _callStackchan),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                    ValueListenableBuilder(
+                      valueListenable: _textArea,
+                      builder: (context, value, child) {
+                        return IconButton(
+                          color: Theme.of(context).colorScheme.primary,
+                          icon: _textArea.text.trim().isEmpty
+                              ? (listening ? const Icon(Icons.stop) : const Icon(Icons.mic))
+                              : const Icon(Icons.send),
+                          onPressed: updating
+                              ? null
+                              : (_textArea.text.trim().isEmpty
+                                  ? listening
+                                      ? _stopListening
+                                      : _startListening
+                                  : _callStackchan),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

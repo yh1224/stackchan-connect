@@ -59,8 +59,8 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
   }
 
   Future<void> _newStackchanConfig({String ipAddress = "", Map<String, Object?> config = const {}}) async {
-    final stackchanConfig = await _stackchanRepository
-        .save(StackchanConfig(name: "ｽﾀｯｸﾁｬﾝ", ipAddress: ipAddress, config: config));
+    final stackchanConfig =
+        await _stackchanRepository.save(StackchanConfig(name: "ｽﾀｯｸﾁｬﾝ", ipAddress: ipAddress, config: config));
     final stackchanConfigProviderList = ref.read(_stackchanConfigProviderListProvider);
     stackchanConfigProviderList.add(StateProvider((ref) => stackchanConfig));
     ref.read(_stackchanConfigProviderListProvider.notifier).state = List.from(stackchanConfigProviderList);
@@ -101,60 +101,58 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
         ],
       ),
       drawer: const AppDrawer(),
-      body: GestureDetector(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: stackchanConfigList
-                        .map(
-                          (stackchanConfigProvider) => GestureDetector(
-                            onTapDown: _getTapPosition,
-                            child: Card(
-                              child: ListTile(
-                                title: Text(
-                                  ref.watch(stackchanConfigProvider).name,
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                subtitle: Text(ref.watch(stackchanConfigProvider).ipAddress),
-                                trailing: const Icon(Icons.arrow_forward_ios),
-                                leading: const Icon(Icons.sentiment_neutral, size: 48),
-                                onTap: () async {
-                                  await Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => ControlTabsPage(stackchanConfigProvider)));
-                                  _init();
-                                },
-                                onLongPress: () async {
-                                  HapticFeedback.mediumImpact();
-                                  if (_tapPosition == null) return;
-                                  final result = await showMenu(
-                                    context: context,
-                                    position: RelativeRect.fromLTRB(_tapPosition!.dx, _tapPosition!.dy, 0, 0),
-                                    items: [
-                                      const PopupMenuItem(
-                                        value: "remove",
-                                        child: Text("削除"),
-                                      ),
-                                    ],
-                                  );
-                                  if (result == "remove") {
-                                    _removeStackchanConfig(stackchanConfigProvider);
-                                  }
-                                },
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: stackchanConfigList
+                      .map(
+                        (stackchanConfigProvider) => GestureDetector(
+                          onTapDown: _getTapPosition,
+                          child: Card(
+                            child: ListTile(
+                              title: Text(
+                                ref.watch(stackchanConfigProvider).name,
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
+                              subtitle: Text(ref.watch(stackchanConfigProvider).ipAddress),
+                              trailing: const Icon(Icons.arrow_forward_ios),
+                              leading: const Icon(Icons.sentiment_neutral, size: 48),
+                              onTap: () async {
+                                await Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => ControlTabsPage(stackchanConfigProvider)));
+                                _init();
+                              },
+                              onLongPress: () async {
+                                HapticFeedback.mediumImpact();
+                                if (_tapPosition == null) return;
+                                final result = await showMenu(
+                                  context: context,
+                                  position: RelativeRect.fromLTRB(_tapPosition!.dx, _tapPosition!.dy, 0, 0),
+                                  items: [
+                                    const PopupMenuItem(
+                                      value: "remove",
+                                      child: Text("削除"),
+                                    ),
+                                  ],
+                                );
+                                if (result == "remove") {
+                                  _removeStackchanConfig(stackchanConfigProvider);
+                                }
+                              },
                             ),
                           ),
-                        )
-                        .toList(),
-                  ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

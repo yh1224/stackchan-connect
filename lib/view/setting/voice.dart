@@ -68,107 +68,105 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
       ),
-      body: GestureDetector(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("声色指定に対応していない場合、設定しても効きません。"),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            const Text("声色: "),
-                            DropdownButton<String?>(
-                              items: const [
-                                DropdownMenuItem(
-                                  value: null,
-                                  child: Text("未指定"),
-                                ),
-                                DropdownMenuItem(
-                                  value: "0",
-                                  child: Text("0"),
-                                ),
-                                DropdownMenuItem(
-                                  value: "1",
-                                  child: Text("1"),
-                                ),
-                                DropdownMenuItem(
-                                  value: "2",
-                                  child: Text("2"),
-                                ),
-                                DropdownMenuItem(
-                                  value: "3",
-                                  child: Text("3"),
-                                ),
-                                DropdownMenuItem(
-                                  value: "4",
-                                  child: Text("4"),
-                                ),
-                              ],
-                              onChanged: (String? value) {
-                                ref.read(_voiceProvider.notifier).state = value;
-                              },
-                              value: voice,
-                            )
-                          ],
-                        ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("声色指定に対応していない場合、設定しても効きません。"),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          const Text("声色: "),
+                          DropdownButton<String?>(
+                            items: const [
+                              DropdownMenuItem(
+                                value: null,
+                                child: Text("未指定"),
+                              ),
+                              DropdownMenuItem(
+                                value: "0",
+                                child: Text("0"),
+                              ),
+                              DropdownMenuItem(
+                                value: "1",
+                                child: Text("1"),
+                              ),
+                              DropdownMenuItem(
+                                value: "2",
+                                child: Text("2"),
+                              ),
+                              DropdownMenuItem(
+                                value: "3",
+                                child: Text("3"),
+                              ),
+                              DropdownMenuItem(
+                                value: "4",
+                                child: Text("4"),
+                              ),
+                            ],
+                            onChanged: (String? value) {
+                              ref.read(_voiceProvider.notifier).state = value;
+                            },
+                            value: voice,
+                          )
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Visibility(
-                    visible: statusMessage.isNotEmpty,
+          ),
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Visibility(
+                  visible: statusMessage.isNotEmpty,
+                  child: Text(
+                    statusMessage,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                Visibility(
+                  visible: updating,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(),
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _test,
                     child: Text(
-                      statusMessage,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      "テスト",
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
-                  Visibility(
-                    visible: updating,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: LinearProgressIndicator(),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _close,
+                    child: Text(
+                      "OK",
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _test,
-                      child: Text(
-                        "テスト",
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _close,
-                      child: Text(
-                        "OK",
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

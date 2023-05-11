@@ -104,12 +104,12 @@ class _SpeechPageState extends ConsumerState<SpeechPage> {
     final messages = ref.watch(_messagesProvider);
 
     return Scaffold(
-      body: GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          children: [
-            Expanded(
+      body: Column(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              behavior: HitTestBehavior.opaque,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ListView(
@@ -146,58 +146,58 @@ class _SpeechPageState extends ConsumerState<SpeechPage> {
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Visibility(
-                    visible: statusMessage.isNotEmpty,
-                    child: Text(
-                      statusMessage,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Visibility(
+                  visible: statusMessage.isNotEmpty,
+                  child: Text(
+                    statusMessage,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  Visibility(
-                    visible: updating,
-                    child: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: LinearProgressIndicator(),
-                    ),
+                ),
+                Visibility(
+                  visible: updating,
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: LinearProgressIndicator(),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _textArea,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                        ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _textArea,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
                       ),
-                      ValueListenableBuilder(
-                        valueListenable: _textArea,
-                        builder: (context, value, child) {
-                          return IconButton(
-                            color: Theme.of(context).colorScheme.primary,
-                            icon: const Icon(Icons.send),
-                            onPressed: updating || _textArea.text.trim().isEmpty
-                                ? null
-                                : () {
-                                    final message = _textArea.text.trim();
-                                    _textArea.clear();
-                                    _speech(message, true);
-                                  },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    ValueListenableBuilder(
+                      valueListenable: _textArea,
+                      builder: (context, value, child) {
+                        return IconButton(
+                          color: Theme.of(context).colorScheme.primary,
+                          icon: const Icon(Icons.send),
+                          onPressed: updating || _textArea.text.trim().isEmpty
+                              ? null
+                              : () {
+                                  final message = _textArea.text.trim();
+                                  _textArea.clear();
+                                  _speech(message, true);
+                                },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

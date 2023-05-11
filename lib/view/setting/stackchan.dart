@@ -89,74 +89,72 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
       appBar: AppBar(
         title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
       ),
-      body: GestureDetector(
-        child: Column(
-          children: [
-            Expanded(
-              child: Visibility(
-                visible: initialized,
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text("音量: "),
-                            Text("$volume"),
-                          ],
-                        ),
-                        Slider(
-                          label: "音量",
-                          min: 0,
-                          max: 255,
-                          value: volume.toDouble(),
-                          onChanged: (double value) {
-                            ref.read(_volumeProvider.notifier).state = value.toInt();
-                          },
-                        ),
-                      ],
-                    ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Visibility(
+              visible: initialized,
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("音量: "),
+                          Text("$volume"),
+                        ],
+                      ),
+                      Slider(
+                        label: "音量",
+                        min: 0,
+                        max: 255,
+                        value: volume.toDouble(),
+                        onChanged: (double value) {
+                          ref.read(_volumeProvider.notifier).state = value.toInt();
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Visibility(
-                    visible: statusMessage.isNotEmpty,
+          ),
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Visibility(
+                  visible: statusMessage.isNotEmpty,
+                  child: Text(
+                    statusMessage,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                Visibility(
+                  visible: updating,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(),
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: (initialized && !updating) ? _updateVolume : null,
                     child: Text(
-                      statusMessage,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      "設定",
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
-                  Visibility(
-                    visible: updating,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: LinearProgressIndicator(),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: (initialized && !updating) ? _updateVolume : null,
-                      child: Text(
-                        "設定",
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
