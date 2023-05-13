@@ -78,7 +78,7 @@ class ChatRepository {
       tableName,
       where: "stackchan_id = ?",
       whereArgs: [stackchanId],
-      orderBy: "created_at",
+      orderBy: "created_at DESC",
       limit: limit,
     );
     return List.generate(messages.length, (i) {
@@ -88,7 +88,7 @@ class ChatRepository {
         kind: messages[i]["kind"] as String,
         text: messages[i]["text"] as String,
       );
-    });
+    }).reversed.toList();
   }
 
   Future<ChatMessage> append(int stackchanId, ChatMessage message) async {
