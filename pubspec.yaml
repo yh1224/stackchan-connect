@@ -46,6 +46,7 @@ dependencies:
   sqflite: ^2.2.6
   http_retry: ^0.2.0
   flutter_riverpod: ^2.3.6
+  fluttertoast: ^8.2.2
 
 dev_dependencies:
   flutter_test:
