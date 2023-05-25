@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -34,12 +36,18 @@ class ChatBubble extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(
-              text,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge!
-                  .copyWith(color: me ? Colors.black : Theme.of(context).colorScheme.onPrimary),
+            child: InkWell(
+              child: Text(
+                text,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge!
+                    .copyWith(color: me ? Colors.black : Theme.of(context).colorScheme.onPrimary),
+              ),
+              onLongPress: () {
+                Clipboard.setData(ClipboardData(text: text));
+                Fluttertoast.showToast(msg: "Copied to clipboard");
+              },
             ),
           ),
         ),
