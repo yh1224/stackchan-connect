@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repository/stackchan.dart';
 import 'apikey.dart';
-import 'config.dart';
 import 'role.dart';
 import 'stackchan.dart';
 import 'voice.dart';
@@ -32,23 +31,6 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Card(
-                    child: ListTile(
-                      title: Text("ｽﾀｯｸﾁｬﾝ 設定", style: Theme.of(context).textTheme.titleLarge),
-                      subtitle: Text(stackchanConfig.ipAddress),
-                      onTap: () async {
-                        await Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => SettingIpConfigPage(widget.stackchanConfigProvider)));
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
             Visibility(
               visible: stackchanConfig.ipAddress.isNotEmpty,
               child: Padding(

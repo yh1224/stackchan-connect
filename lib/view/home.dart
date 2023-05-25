@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../repository/stackchan.dart';
+import 'config.dart';
 import 'control/tabs.dart';
 import 'drawer.dart';
 
@@ -119,7 +119,20 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               subtitle: Text(ref.watch(stackchanConfigProvider).ipAddress),
-                              trailing: const Icon(Icons.arrow_forward_ios),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.settings),
+                                    padding: const EdgeInsets.all(12),
+                                    onPressed: () async {
+                                      final res = await Navigator.of(context).push(MaterialPageRoute(
+                                          builder: (context) => StackchanConfigPage(stackchanConfigProvider)));
+                                      _stackchanRepository.save(res);
+                                    },
+                                  ),
+                                ],
+                              ),
                               leading: const Icon(Icons.sentiment_neutral, size: 48),
                               onTap: () async {
                                 await Navigator.of(context).push(
@@ -127,7 +140,6 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
                                 _init();
                               },
                               onLongPress: () async {
-                                HapticFeedback.mediumImpact();
                                 if (_tapPosition == null) return;
                                 final result = await showMenu(
                                   context: context,

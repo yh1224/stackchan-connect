@@ -3,20 +3,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../infrastructure/stackchan.dart';
-import '../../repository/stackchan.dart';
+import '../infrastructure/stackchan.dart';
+import '../repository/stackchan.dart';
 import 'smartconfig.dart';
 
-class SettingIpConfigPage extends ConsumerStatefulWidget {
-  const SettingIpConfigPage(this.stackchanConfigProvider, {super.key});
+class StackchanConfigPage extends ConsumerStatefulWidget {
+  const StackchanConfigPage(this.stackchanConfigProvider, {super.key});
 
   final StateProvider<StackchanConfig> stackchanConfigProvider;
 
   @override
-  ConsumerState<SettingIpConfigPage> createState() => _SettingIpAddressPageState();
+  ConsumerState<StackchanConfigPage> createState() => _StackchanConfigPageState();
 }
 
-class _SettingIpAddressPageState extends ConsumerState<SettingIpConfigPage> {
+class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
   /// 設定更新中
   final _updatingProvider = StateProvider((ref) => false);
 
@@ -81,7 +81,7 @@ class _SettingIpAddressPageState extends ConsumerState<SettingIpConfigPage> {
     );
     ref.read(widget.stackchanConfigProvider.notifier).state = newStackchanConfig;
     if (context.mounted) {
-      Navigator.of(context).pop(_stackchanIpAddressTextArea.text.trim());
+      Navigator.of(context).pop(newStackchanConfig);
     }
   }
 

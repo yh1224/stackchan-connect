@@ -23,13 +23,6 @@ class _ControlPageState extends ConsumerState<ControlTabsPage> with TickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _init();
-  }
-
-  Future<void> _init() async {
-    if (ref.read(widget.stackchanConfigProvider).ipAddress.isEmpty) {
-      _tabController.animateTo(3);
-    }
   }
 
   @override
