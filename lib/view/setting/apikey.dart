@@ -157,7 +157,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
+        title: const Text("API 設定"),
       ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -169,13 +169,16 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                 visible: initialized,
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "OpenAI",
-                          style: Theme.of(context).textTheme.titleLarge,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            "OpenAI",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ),
                         RichText(
                           text: TextSpan(
@@ -201,7 +204,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: TextFormField(
                             obscureText: openaiApiKeyIsObscure,
                             decoration: InputDecoration(
@@ -221,16 +224,16 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _testOpenAIApi,
-                            child: Text(
-                              "テスト",
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
+                            child: const Text("有効性を確認"),
                           ),
                         ),
                         const SizedBox(height: 20.0),
-                        Text(
-                          "VoiceText",
-                          style: Theme.of(context).textTheme.titleLarge,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            "VoiceText",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ),
                         RichText(
                           text: TextSpan(
@@ -249,18 +252,18 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                                   },
                               ),
                               TextSpan(
-                                text: " から API Key を発行して、設定してください。",
+                                text: " から API Key を発行して、設定してください。Google TTS に対応した AI ｽﾀｯｸﾁｬﾝ では省略できます。",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               TextSpan(
-                                text: "★現在無料版の新規登録は停止しています。Google TTS 版 AI ｽﾀｯｸﾁｬﾝ では、この設定は不要です。",
+                                text: "★現在無料版の新規登録は停止しています。",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: TextFormField(
                             obscureText: voicetextApiKeyIsObscure,
                             decoration: InputDecoration(
@@ -280,10 +283,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _testVoiceTextApi,
-                            child: Text(
-                              "テスト",
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
+                            child: const Text("有効性を確認"),
                           ),
                         ),
                       ],
@@ -316,10 +316,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: (initialized && !updating) ? _updateApiKeys : null,
-                      child: Text(
-                        "設定",
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
+                      child: const Text("設定"),
                     ),
                   ),
                 ],

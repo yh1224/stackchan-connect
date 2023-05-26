@@ -94,7 +94,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
+        title: const Text("ロール設定"),
       ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -106,25 +106,34 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                 visible: initialized,
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                            const Text("ロール(役割)を設定することで、ｽﾀｯｸﾁｬﾝ の振る舞いを変更することができます。設定が多いと返答に時間がかかったり、失敗しやすくなります。"),
-                          ] +
-                          List.generate(
-                              maxRoleCount,
-                              (int index) => Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                    child: TextFormField(
-                                      maxLines: null,
-                                      decoration: InputDecoration(
-                                        labelText: "ロール ${index + 1}",
+                      children: [
+                        Text(
+                          "ロール(役割)を設定することで、ｽﾀｯｸﾁｬﾝ の振る舞いを変更することができます。設定が多いと返答に時間がかかったり、失敗しやすくなります。",
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: List.generate(
+                                maxRoleCount,
+                                (int index) => Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                      child: TextFormField(
+                                        maxLines: null,
+                                        decoration: InputDecoration(
+                                          labelText: "ロール ${index + 1}",
+                                        ),
+                                        controller: _roleTextAreas[index],
+                                        style: Theme.of(context).textTheme.bodyLarge,
                                       ),
-                                      controller: _roleTextAreas[index],
-                                      style: Theme.of(context).textTheme.bodyLarge,
-                                    ),
-                                  )),
+                                    )),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -154,10 +163,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: (initialized && !updating) ? _updateRoles : null,
-                      child: Text(
-                        "設定",
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
+                      child: const Text("設定"),
                     ),
                   ),
                 ],

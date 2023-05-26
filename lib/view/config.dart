@@ -102,71 +102,89 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "この ｽﾀｯｸﾁｬﾝ に名前をつけてください。",
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              controller: _stackchanNameTextArea,
-                              decoration: const InputDecoration(
-                                hintText: "名前",
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "ｽﾀｯｸﾁｬﾝの IP アドレスを入力してください。",
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              controller: _stackchanIpAddressTextArea,
-                              decoration: const InputDecoration(
-                                hintText: "IP アドレス",
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20.0),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Visibility(
-                        visible: _canSmartConfig(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "SmartConfig に対応している場合は、以下から自動設定することもできます。",
-                            ),
-                            ElevatedButton(
-                              onPressed: _startSmartConfig,
-                              child: const Text(
-                                "SmartConfig で設定する",
-                              ),
-                            ),
-                          ],
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Text(
+                          "名前",
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
-                    ),
-                  ],
+                      Text(
+                        "この ｽﾀｯｸﾁｬﾝ に名前をつけてください。",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: TextField(
+                          controller: _stackchanNameTextArea,
+                          decoration: const InputDecoration(
+                            hintText: "名前",
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Text(
+                          "IP アドレス",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      Text(
+                        "ｽﾀｯｸﾁｬﾝの IP アドレスを入力してください。",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: TextField(
+                          controller: _stackchanIpAddressTextArea,
+                          decoration: const InputDecoration(
+                            hintText: "IP アドレス",
+                          ),
+                        ),
+                      ),
+                      ValueListenableBuilder(
+                        valueListenable: _stackchanIpAddressTextArea,
+                        builder: (context, value, child) {
+                          return Visibility(
+                            visible: _canSmartConfig() && _stackchanIpAddressTextArea.text.trim().isEmpty,
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _startSmartConfig,
+                                child: const Text("SmartConfig で自動設定"),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      ValueListenableBuilder(
+                        valueListenable: _stackchanIpAddressTextArea,
+                        builder: (context, value, child) {
+                          return Visibility(
+                            visible: _stackchanIpAddressTextArea.text.trim().isNotEmpty,
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ValueListenableBuilder(
+                                valueListenable: _stackchanIpAddressTextArea,
+                                builder: (context, value, child) {
+                                  return ElevatedButton(
+                                    onPressed:
+                                        _stackchanIpAddressTextArea.text.trim().isEmpty || updating ? null : _test,
+                                    child: const Text("接続確認"),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -190,29 +208,6 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                       child: LinearProgressIndicator(),
                     ),
                   ),
-                  ValueListenableBuilder(
-                    valueListenable: _stackchanIpAddressTextArea,
-                    builder: (context, value, child) {
-                      return Visibility(
-                        visible: _stackchanIpAddressTextArea.text.trim().isNotEmpty,
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ValueListenableBuilder(
-                            valueListenable: _stackchanIpAddressTextArea,
-                            builder: (context, value, child) {
-                              return ElevatedButton(
-                                onPressed: _stackchanIpAddressTextArea.text.trim().isEmpty || updating ? null : _test,
-                                child: Text(
-                                  "接続確認",
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
                   SizedBox(
                     width: double.infinity,
                     child: ValueListenableBuilder(
@@ -220,10 +215,7 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                       builder: (context, value, child) {
                         return ElevatedButton(
                           onPressed: _close,
-                          child: Text(
-                            "OK",
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
+                          child: const Text("OK"),
                         );
                       },
                     ),

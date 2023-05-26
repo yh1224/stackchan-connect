@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stackchan_connect/view/home.dart';
 
-import 'control/tabs.dart';
-
 class MyAppState extends ChangeNotifier {}
 
 class MyApp extends StatelessWidget {
@@ -19,7 +17,27 @@ class MyApp extends StatelessWidget {
         title: "ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ",
         theme: ThemeData(
           useMaterial3: true,
-          colorSchemeSeed: Colors.teal,
+          colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.teal),
+          scaffoldBackgroundColor: Colors.teal[50],
+          cardTheme: const CardTheme(
+            surfaceTintColor: Colors.white,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.teal,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.onPrimary,
+            hintStyle: TextStyle(
+              color: Colors.green[700],
+            ),
+          ),
         ),
         home: const AppHomePage(),
       ),

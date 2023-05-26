@@ -31,7 +31,7 @@ class ChatBubble extends StatelessWidget {
         alignment: me ? Alignment.centerRight : Alignment.centerLeft,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: me ? Colors.grey[300] : Theme.of(context).colorScheme.primary,
+            color: me ? Colors.green[100] : Colors.white,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Padding(
@@ -39,10 +39,7 @@ class ChatBubble extends StatelessWidget {
             child: InkWell(
               child: Text(
                 text,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge!
-                    .copyWith(color: me ? Colors.black : Theme.of(context).colorScheme.onPrimary),
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black),
               ),
               onLongPress: () {
                 Clipboard.setData(ClipboardData(text: text));

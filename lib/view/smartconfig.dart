@@ -262,10 +262,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                             onPressed: (isWifiConnected && _wifiPassphraseTextArea.text.trim().isNotEmpty)
                                 ? (provisioning ? _stopProvision : _startProvision)
                                 : null,
-                            child: Text(
-                              provisioning ? "キャンセル" : "設定開始",
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
+                            child: Text(provisioning ? "キャンセル" : "設定開始"),
                           );
                         },
                       ),
@@ -277,10 +274,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _close,
-                        child: Text(
-                          "OK",
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
+                        child: const Text("OK"),
                       ),
                     ),
                   )

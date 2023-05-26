@@ -87,33 +87,41 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
+        title: const Text("音量設定"),
       ),
       body: Column(
         children: [
           Expanded(
             child: Visibility(
               visible: initialized,
-              child: Center(
-                child: SingleChildScrollView(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Text(
+                          "音量",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("音量: "),
+                          Expanded(
+                            child: Slider(
+                              label: "音量",
+                              min: 0,
+                              max: 255,
+                              value: volume.toDouble(),
+                              onChanged: (double value) {
+                                ref.read(_volumeProvider.notifier).state = value.toInt();
+                              },
+                            ),
+                          ),
                           Text("$volume"),
                         ],
-                      ),
-                      Slider(
-                        label: "音量",
-                        min: 0,
-                        max: 255,
-                        value: volume.toDouble(),
-                        onChanged: (double value) {
-                          ref.read(_volumeProvider.notifier).state = value.toInt();
-                        },
                       ),
                     ],
                   ),
@@ -145,10 +153,7 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: (initialized && !updating) ? _updateVolume : null,
-                    child: Text(
-                      "設定",
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
+                    child: const Text("設定"),
                   ),
                 ),
               ],

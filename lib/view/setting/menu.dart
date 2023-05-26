@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../repository/stackchan.dart';
 import 'apikey.dart';
 import 'role.dart';
-import 'stackchan.dart';
 import 'voice.dart';
+import 'volume.dart';
 
 class SettingMenuPage extends ConsumerStatefulWidget {
   const SettingMenuPage(this.stackchanConfigProvider, {super.key});
@@ -33,48 +33,49 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
           children: [
             Visibility(
               visible: stackchanConfig.ipAddress.isNotEmpty,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Card(
-                      child: ListTile(
-                        title: Text("API Key 設定", style: Theme.of(context).textTheme.titleLarge),
-                        onTap: () {
-                          Navigator.of(context)
-                              .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(stackchanConfig)));
-                        },
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        title: Text("ロール設定", style: Theme.of(context).textTheme.titleLarge),
-                        onTap: () {
-                          Navigator.of(context)
-                              .push(MaterialPageRoute(builder: (context) => SettingRolePage(stackchanConfig)));
-                        },
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => SettingStackchanPage(widget.stackchanConfigProvider)));
-                        },
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        title: Text("声色設定", style: Theme.of(context).textTheme.titleLarge),
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => SettingVoicePage(widget.stackchanConfigProvider)));
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: Text("API 設定", style: Theme.of(context).textTheme.titleLarge),
+                    subtitle: const Text("外部 API を使用するための設定をします"),
+                    tileColor: Colors.white,
+                    leading: const Icon(Icons.key),
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(stackchanConfig)));
+                    },
+                  ),
+                  ListTile(
+                    title: Text("ChatGPT ロール設定", style: Theme.of(context).textTheme.titleLarge),
+                    subtitle: const Text("ｽﾀｯｸﾁｬﾝ のキャラクターを変更します"),
+                    tileColor: Colors.white,
+                    leading: const Icon(Icons.person),
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (context) => SettingRolePage(stackchanConfig)));
+                    },
+                  ),
+                  ListTile(
+                    title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
+                    subtitle: const Text("読み上げの音量を調整します"),
+                    tileColor: Colors.white,
+                    leading: const Icon(Icons.volume_up),
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => SettingStackchanPage(widget.stackchanConfigProvider)));
+                    },
+                  ),
+                  ListTile(
+                    title: Text("声色設定", style: Theme.of(context).textTheme.titleLarge),
+                    subtitle: const Text("読み上げの声色を選択します"),
+                    tileColor: Colors.white,
+                    leading: const Icon(Icons.record_voice_over),
+                    onTap: () {
+                      Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => SettingVoicePage(widget.stackchanConfigProvider)));
+                    },
+                  ),
+                ],
               ),
             ),
           ],
