@@ -92,32 +92,15 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: DropdownButtonFormField<String?>(
                         isExpanded: true,
-                        items: const [
-                          DropdownMenuItem(
-                            value: null,
-                            child: Text("指定しない"),
-                          ),
-                          DropdownMenuItem(
-                            value: "0",
-                            child: Text("No. 0"),
-                          ),
-                          DropdownMenuItem(
-                            value: "1",
-                            child: Text("No. 1"),
-                          ),
-                          DropdownMenuItem(
-                            value: "2",
-                            child: Text("No. 2"),
-                          ),
-                          DropdownMenuItem(
-                            value: "3",
-                            child: Text("No. 3"),
-                          ),
-                          DropdownMenuItem(
-                            value: "4",
-                            child: Text("No. 4"),
-                          ),
-                        ],
+                        items: const <DropdownMenuItem<String>>[
+                              DropdownMenuItem(
+                                value: null,
+                                child: Text("指定しない"),
+                              ),
+                            ] +
+                            [for (var i = 1; i <= 60; i++) i].map((i) {
+                              return DropdownMenuItem(value: "$i", child: Text("No. $i"));
+                            }).toList(),
                         onChanged: (String? value) {
                           ref.read(_voiceProvider.notifier).state = value;
                         },
