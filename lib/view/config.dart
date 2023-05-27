@@ -17,6 +17,9 @@ class StackchanConfigPage extends ConsumerStatefulWidget {
 }
 
 class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
+  /// ｽﾀｯｸﾁｬﾝ 設定リポジトリ
+  final _stackchanRepository = StackchanRepository();
+
   /// 設定更新中
   final _updatingProvider = StateProvider((ref) => false);
 
@@ -80,6 +83,7 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
       ipAddress: _stackchanIpAddressTextArea.text.trim(),
     );
     ref.read(widget.stackchanConfigProvider.notifier).state = newStackchanConfig;
+    _stackchanRepository.save(newStackchanConfig);
     if (context.mounted) {
       Navigator.of(context).pop(newStackchanConfig);
     }
@@ -216,6 +220,47 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                         return ElevatedButton(
                           onPressed: _close,
                           child: const Text("OK"),
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ValueListenableBuilder(
+                      valueListenable: _stackchanIpAddressTextArea,
+                      builder: (context, value, child) {
+                        return ElevatedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("確認"),
+                                  content: const Text("この ｽﾀｯｸﾁｬﾝ を一覧から削除します。本当によろしいですか?"),
+                                  actions: [
+                                    TextButton(
+                                      child: const Text("やめる"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: const Text("OK"),
+                                      onPressed: () {
+                                        _stackchanRepository.remove(ref.watch(widget.stackchanConfigProvider));
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          child: const Text("削除"),
                         );
                       },
                     ),

@@ -21,9 +21,6 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
   /// ｽﾀｯｸﾁｬﾝ 設定
   final _stackchanConfigProviderListProvider = StateProvider<List<StateProvider<StackchanConfig>>>((ref) => []);
 
-  /// タップ位置
-  Offset? _tapPosition;
-
   @override
   void initState() {
     super.initState();
@@ -50,10 +47,9 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
 
   Future<void> _init() async {
     final stackchanConfigs = await _stackchanRepository.getStackchanConfigs();
-    if (stackchanConfigs.isNotEmpty) {
-      ref.read(_stackchanConfigProviderListProvider.notifier).state =
-          stackchanConfigs.map((c) => StateProvider<StackchanConfig>((ref) => c)).toList();
-    } else {
+    ref.read(_stackchanConfigProviderListProvider.notifier).state =
+        stackchanConfigs.map((c) => StateProvider<StackchanConfig>((ref) => c)).toList();
+    if (stackchanConfigs.isEmpty) {
       await _newStackchanConfig();
     }
   }
@@ -64,18 +60,6 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
     final stackchanConfigProviderList = ref.read(_stackchanConfigProviderListProvider);
     stackchanConfigProviderList.add(StateProvider((ref) => stackchanConfig));
     ref.read(_stackchanConfigProviderListProvider.notifier).state = List.from(stackchanConfigProviderList);
-  }
-
-  Future<void> _removeStackchanConfig(StateProvider<StackchanConfig> stackchanConfigProvider) async {
-    final stackchanConfigProviderList = ref.read(_stackchanConfigProviderListProvider);
-    stackchanConfigProviderList.remove(stackchanConfigProvider);
-    _stackchanRepository.remove(ref.read(stackchanConfigProvider));
-    ref.read(_stackchanConfigProviderListProvider.notifier).state = List.from(stackchanConfigProviderList);
-  }
-
-  void _getTapPosition(TapDownDetails tapPosition) {
-    final RenderBox referenceBox = context.findRenderObject() as RenderBox;
-    _tapPosition = referenceBox.globalToLocal(tapPosition.globalPosition);
   }
 
   @override
@@ -110,54 +94,40 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
                 child: Column(
                   children: stackchanConfigList
                       .map(
-                        (stackchanConfigProvider) => GestureDetector(
-                          onTapDown: _getTapPosition,
-                          child: Card(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: ListTile(
-                                title: Text(
-                                  ref.watch(stackchanConfigProvider).name,
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                subtitle: Text(ref.watch(stackchanConfigProvider).ipAddress),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.settings, size: 32),
-                                      padding: const EdgeInsets.all(12),
-                                      onPressed: () async {
-                                        final res = await Navigator.of(context).push(MaterialPageRoute(
-                                            builder: (context) => StackchanConfigPage(stackchanConfigProvider)));
-                                        _stackchanRepository.save(res);
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                leading: const Image(image: AssetImage('assets/images/stackchan-lightorange.png')),
-                                onTap: () async {
-                                  await Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (context) => ControlTabsPage(stackchanConfigProvider)));
-                                  _init();
-                                },
-                                onLongPress: () async {
-                                  if (_tapPosition == null) return;
-                                  final result = await showMenu(
-                                    context: context,
-                                    position: RelativeRect.fromLTRB(_tapPosition!.dx, _tapPosition!.dy, 0, 0),
-                                    items: [
-                                      const PopupMenuItem(
-                                        value: "remove",
-                                        child: Text("削除"),
-                                      ),
-                                    ],
-                                  );
-                                  if (result == "remove") {
-                                    _removeStackchanConfig(stackchanConfigProvider);
-                                  }
-                                },
+                        (stackchanConfigProvider) => Card(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: ListTile(
+                              title: Text(
+                                ref.watch(stackchanConfigProvider).name,
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
+                              subtitle: Text(ref.watch(stackchanConfigProvider).ipAddress),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.settings, size: 32),
+                                    padding: const EdgeInsets.all(12),
+                                    onPressed: () async {
+                                      await Navigator.of(context).push(MaterialPageRoute(
+                                          builder: (context) => StackchanConfigPage(stackchanConfigProvider)));
+                                      _init();
+                                    },
+                                  ),
+                                ],
+                              ),
+                              leading: const Image(image: AssetImage('assets/images/stackchan-lightorange.png')),
+                              onTap: () async {
+                                if (ref.watch(stackchanConfigProvider).ipAddress.isEmpty) {
+                                  await Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => StackchanConfigPage(stackchanConfigProvider)));
+                                  _init();
+                                } else {
+                                  await Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => ControlTabsPage(stackchanConfigProvider)));
+                                }
+                              },
                             ),
                           ),
                         ),
