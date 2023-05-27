@@ -22,14 +22,14 @@ class VoiceTextApi {
         });
 
   Future<Response> testTts(String text) async {
-    const path = "tts";
-    final res = await _httpClient.post(Uri.parse("$endpoint/$path"), headers: {
+    const url = "$endpoint/tts";
+    final res = await _httpClient.post(Uri.parse(url), headers: {
       "Authorization": "Basic ${base64.encode(utf8.encode("$_apiKey:"))}",
     }, body: {
       "text": text,
       "speaker": "haruka",
     });
-    debugPrint("POST $endpoint/$path : ${res.statusCode}");
+    debugPrint("POST $url : ${res.statusCode}");
     return res;
   }
 }
