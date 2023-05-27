@@ -5,9 +5,11 @@ import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../infrastructure/googlecloud.dart';
 import '../../infrastructure/openai.dart';
 import '../../infrastructure/stackchan.dart';
 import '../../infrastructure/voicetext.dart';
+import '../../infrastructure/voicevox.dart';
 import '../../repository/stackchan.dart';
 
 class SettingApiKeyPage extends ConsumerStatefulWidget {
@@ -33,15 +35,25 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
   final _openaiApiKeyTextArea = TextEditingController();
   final _openaiApiKeyIsObscureProvider = StateProvider((ref) => true);
 
+  /// Google Cloud API Key 入力
+  final _googleCloudApiKeyTextArea = TextEditingController();
+  final _googleCloudApiKeyIsObscureProvider = StateProvider((ref) => true);
+
   /// VoiceText API Key 入力
   final _voicetextApiKeyTextArea = TextEditingController();
   final _voicetextApiKeyIsObscureProvider = StateProvider((ref) => true);
+
+  /// Voicevox API Key 入力
+  final _voicevoxApiKeyTextArea = TextEditingController();
+  final _voicevoxApiKeyIsObscureProvider = StateProvider((ref) => true);
 
   @override
   void initState() {
     super.initState();
     _openaiApiKeyTextArea.addListener(_onUpdate);
+    _googleCloudApiKeyTextArea.addListener(_onUpdate);
     _voicetextApiKeyTextArea.addListener(_onUpdate);
+    _voicevoxApiKeyTextArea.addListener(_onUpdate);
     Future(() async {
       await _restoreSettings();
       await _checkStackchan();
@@ -51,20 +63,26 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
   @override
   void dispose() {
     _openaiApiKeyTextArea.dispose();
+    _googleCloudApiKeyTextArea.dispose();
     _voicetextApiKeyTextArea.dispose();
+    _voicevoxApiKeyTextArea.dispose();
     super.dispose();
   }
 
   Future<void> _restoreSettings() async {
     final prefs = await SharedPreferences.getInstance();
     _openaiApiKeyTextArea.text = prefs.getString("openaiApiKey") ?? "";
+    _googleCloudApiKeyTextArea.text = prefs.getString("googleCloudApiKey") ?? "";
     _voicetextApiKeyTextArea.text = prefs.getString("voicetextApiKey") ?? "";
+    _voicevoxApiKeyTextArea.text = prefs.getString("voicevoxApiKey") ?? "";
   }
 
   Future<void> _onUpdate() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("openaiApiKey", _openaiApiKeyTextArea.text.trim());
+    await prefs.setString("googleCloudApiKey", _googleCloudApiKeyTextArea.text.trim());
     await prefs.setString("voicetextApiKey", _voicetextApiKeyTextArea.text.trim());
+    await prefs.setString("voicevoxApiKey", _voicevoxApiKeyTextArea.text.trim());
   }
 
   // check existence of apikey setting page
@@ -112,6 +130,23 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     }
   }
 
+  Future<void> _testGoogleCloudApi() async {
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
+    try {
+      final res = await GoogleCloudApi(apiKey: _googleCloudApiKeyTextArea.text.trim()).getSpeechOperations();
+      if (res.statusCode == 200) {
+        ref.read(_statusMessageProvider.notifier).state = "Google Cloud Speech-to-Text API を使用できます。";
+      } else {
+        _showMessageForStatusCode(res);
+      }
+    } catch (e) {
+      ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
+    } finally {
+      ref.read(_updatingProvider.notifier).state = false;
+    }
+  }
+
   Future<void> _testVoiceTextApi() async {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
@@ -129,16 +164,36 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     }
   }
 
+  Future<void> _testVoicevoxApi() async {
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
+    try {
+      final result = await VoicevoxApi(apiKey: _voicevoxApiKeyTextArea.text.trim()).getKeyPoints();
+      if (result != null && result > 0) {
+        ref.read(_statusMessageProvider.notifier).state = "VOICEVOX API を使用できます。(残: $result ポイント)";
+      } else {
+        ref.read(_statusMessageProvider.notifier).state = "VOICEVOX API を使用できません。";
+      }
+    } catch (e) {
+      ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
+    } finally {
+      ref.read(_updatingProvider.notifier).state = false;
+    }
+  }
+
   Future<void> _updateApiKeys() async {
     if (ref.read(_updatingProvider)) return;
 
     FocusManager.instance.primaryFocus?.unfocus();
     final openaiApiKey = _openaiApiKeyTextArea.text.trim();
+    final googleCloudApiKey = _googleCloudApiKeyTextArea.text.trim();
     final voicetextApiKey = _voicetextApiKeyTextArea.text.trim();
+    final voicevoxApiKey = _voicevoxApiKeyTextArea.text.trim();
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      await Stackchan(widget.stackchanConfig.ipAddress).setApiKeys(openai: openaiApiKey, voicetext: voicetextApiKey);
+      await Stackchan(widget.stackchanConfig.ipAddress).setApiKeys(
+          openai: openaiApiKey, sttapikey: googleCloudApiKey, voicetext: voicetextApiKey, voicevox: voicevoxApiKey);
       ref.read(_statusMessageProvider.notifier).state = "設定しました。";
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
@@ -153,7 +208,9 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     final updating = ref.watch(_updatingProvider);
     final statusMessage = ref.watch(_statusMessageProvider);
     final openaiApiKeyIsObscure = ref.watch(_openaiApiKeyIsObscureProvider);
+    final googleCloudApiKeyIsObscure = ref.watch(_googleCloudApiKeyIsObscureProvider);
     final voicetextApiKeyIsObscure = ref.watch(_voicetextApiKeyIsObscureProvider);
+    final voicevoxApiKeyIsObscure = ref.watch(_voicevoxApiKeyIsObscureProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -231,6 +288,61 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
+                            "Google Cloud API",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "音声による入力をおこなうには、",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              TextSpan(
+                                text: "Google Cloud",
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    launchUrl(Uri.parse("https://cloud.google.com"),
+                                        mode: LaunchMode.externalApplication);
+                                  },
+                              ),
+                              TextSpan(
+                                text: " から Text-to-Speech API を使用するための API Key を発行して、設定してください。",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            obscureText: googleCloudApiKeyIsObscure,
+                            decoration: InputDecoration(
+                              labelText: "Google Cloud API Key",
+                              suffixIcon: IconButton(
+                                icon: Icon(googleCloudApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
+                                onPressed: () {
+                                  ref.read(_googleCloudApiKeyIsObscureProvider.notifier).update((state) => !state);
+                                },
+                              ),
+                            ),
+                            controller: _googleCloudApiKeyTextArea,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _testGoogleCloudApi,
+                            child: const Text("有効性を確認"),
+                          ),
+                        ),
+                        const SizedBox(height: 20.0),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
                             "VoiceText",
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
@@ -252,7 +364,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                                   },
                               ),
                               TextSpan(
-                                text: " から API Key を発行して、設定してください。Google TTS に対応した AI ｽﾀｯｸﾁｬﾝ では省略できます。",
+                                text: " から API Key を発行して、設定してください。",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               TextSpan(
@@ -283,6 +395,61 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _testVoiceTextApi,
+                            child: const Text("有効性を確認"),
+                          ),
+                        ),
+                        const SizedBox(height: 20.0),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            "WEB 版 VOICEVOX",
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "音声合成エンジン ",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              TextSpan(
+                                text: "WEB 版 VOICEVOX API",
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    launchUrl(Uri.parse("https://voicevox.su-shiki.com/su-shikiapis/"),
+                                        mode: LaunchMode.externalApplication);
+                                  },
+                              ),
+                              TextSpan(
+                                text: " から API Key を発行して、設定してください。",
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            obscureText: voicevoxApiKeyIsObscure,
+                            decoration: InputDecoration(
+                              labelText: "WEB 版 VOICEVOX API Key",
+                              suffixIcon: IconButton(
+                                icon: Icon(voicevoxApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
+                                onPressed: () {
+                                  ref.read(_voicevoxApiKeyIsObscureProvider.notifier).update((state) => !state);
+                                },
+                              ),
+                            ),
+                            controller: _voicevoxApiKeyTextArea,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _testVoicevoxApi,
                             child: const Text("有効性を確認"),
                           ),
                         ),

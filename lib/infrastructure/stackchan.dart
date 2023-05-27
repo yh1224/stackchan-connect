@@ -52,13 +52,19 @@ class Stackchan extends StackchanInterface {
   }
 
   @override
-  Future<void> setApiKeys({String? openai, String? voicetext}) async {
+  Future<void> setApiKeys({String? openai, String? sttapikey, String? voicetext, String? voicevox}) async {
     final params = {};
     if (openai != null) {
       params["openai"] = openai;
     }
+    if (sttapikey != null) {
+      params["sttapikey"] = sttapikey;
+    }
     if (voicetext != null) {
       params["voicetext"] = voicetext;
+    }
+    if (voicevox != null) {
+      params["voicevox"] = voicevox;
     }
     final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/apikey_set"), body: params);
     debugPrint("POST /apikey_set ${jsonEncode(params)} : ${res.statusCode}");
