@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,9 +14,6 @@ class SettingRolePage extends ConsumerStatefulWidget {
 }
 
 class _SettingRolePageState extends ConsumerState<SettingRolePage> {
-  /// ロール設定可能数  TODO: とりあえず固定
-  static const maxRoleCount = 5;
-
   /// 初期化完了
   final _initializedProvider = StateProvider((ref) => false);
 
@@ -28,8 +23,8 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
   /// ステータスメッセージ
   final _statusMessageProvider = StateProvider((ref) => "");
 
-  /// ロール入力
-  final _roleTextAreas = List.generate(maxRoleCount, (int index) => TextEditingController());
+  /// Role input
+  final _roleTextAreas = <TextEditingController>[];
 
   @override
   void initState() {
@@ -53,14 +48,15 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
       final roles = await Stackchan(widget.stackchanConfig.ipAddress).getRoles();
-      for (var i = 0; i < min(_roleTextAreas.length, roles.length); i++) {
-        _roleTextAreas[i].text = roles[i];
+      for (var i = 0; i < roles.length; i++) {
+        final textEditingController = TextEditingController();
+        textEditingController.text = roles[i];
+        _roleTextAreas.add(textEditingController);
+      }
+      if (roles.isEmpty) {
+        _roleTextAreas.add(TextEditingController());
       }
       ref.read(_initializedProvider.notifier).state = true;
-      if (roles.length > maxRoleCount) {
-        ref.read(_statusMessageProvider.notifier).state =
-            "現在 ${roles.length} 個のロールが設定されています。このアプリでは $maxRoleCount 個までしか設定できませんのでご注意ください。";
-      }
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "設定できません。";
     } finally {
@@ -119,7 +115,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: List.generate(
-                                maxRoleCount,
+                                _roleTextAreas.length,
                                 (int index) => Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                                       child: TextFormField(
@@ -131,6 +127,17 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                                         style: Theme.of(context).textTheme.bodyLarge,
                                       ),
                                     )),
+                          ),
+                        ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _roleTextAreas.add(TextEditingController());
+                              });
+                            },
+                            child: const Text("追加"),
                           ),
                         ),
                       ],
