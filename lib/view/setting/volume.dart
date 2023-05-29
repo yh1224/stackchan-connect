@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../infrastructure/stackchan.dart';
@@ -14,16 +15,16 @@ class SettingStackchanPage extends ConsumerStatefulWidget {
 }
 
 class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
-  /// 初期化完了
+  /// Initialized flag
   final _initializedProvider = StateProvider((ref) => false);
 
-  /// 設定更新中
+  /// Updating flag
   final _updatingProvider = StateProvider((ref) => false);
 
-  /// ステータスメッセージ
+  /// Status message
   final _statusMessageProvider = StateProvider((ref) => "");
 
-  /// 音量設定値
+  /// Selecting volume value
   final _volumeProvider = StateProvider((ref) => 255);
 
   @override
@@ -48,7 +49,9 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
       if (await Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress).hasSettingApi()) {
         ref.read(_initializedProvider.notifier).state = true;
       } else {
-        ref.read(_statusMessageProvider.notifier).state = "設定できません。";
+        if (context.mounted) {
+          ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.unsupportedSettings;
+        }
       }
     } finally {
       ref.read(_updatingProvider.notifier).state = false;
@@ -62,10 +65,13 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
+      final updatedSpeech = AppLocalizations.of(context)!.updatedVolumeTo(ref.read(_volumeProvider));
       final stackchan = Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress);
       await stackchan.setting(volume: "${ref.read(_volumeProvider)}");
-      await stackchan.speech("音量を${ref.read(_volumeProvider)}に設定しました。", voice: voice);
-      ref.read(_statusMessageProvider.notifier).state = "設定しました。";
+      await stackchan.speech(updatedSpeech, voice: voice);
+      if (context.mounted) {
+        ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.applySettingsSuccess;
+      }
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
@@ -87,7 +93,7 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("音量設定"),
+        title: Text(AppLocalizations.of(context)!.volumeSettings),
       ),
       body: Column(
         children: [
@@ -103,7 +109,7 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: Text(
-                          "音量",
+                          AppLocalizations.of(context)!.volume,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
@@ -111,7 +117,7 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
                         children: [
                           Expanded(
                             child: Slider(
-                              label: "音量",
+                              label: AppLocalizations.of(context)!.volume,
                               min: 0,
                               max: 255,
                               value: volume.toDouble(),
@@ -153,7 +159,7 @@ class _SettingStackchanPageState extends ConsumerState<SettingStackchanPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: (initialized && !updating) ? _updateVolume : null,
-                    child: const Text("設定"),
+                    child: Text(AppLocalizations.of(context)!.applySettings),
                   ),
                 ),
               ],

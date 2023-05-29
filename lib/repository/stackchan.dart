@@ -64,7 +64,7 @@ class StackchanRepository {
       },
       onUpgrade: _migrate,
       onDowngrade: (Database db, int oldVersion, int newVersion) async {
-        // DB 作り直し
+        // Re-create the database
         await db.execute("DROP TABLE $tableName");
         await _migrate(db, 0, newVersion);
       },

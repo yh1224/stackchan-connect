@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../infrastructure/stackchan.dart';
 import '../../repository/stackchan.dart';
@@ -14,13 +16,13 @@ class FacePage extends ConsumerStatefulWidget {
 }
 
 class _FacePageState extends ConsumerState<FacePage> {
-  /// 初期化完了
+  /// Initialized flag
   final _initializedProvider = StateProvider((ref) => false);
 
-  /// 設定更新中
+  /// Updating flag
   final _updatingProvider = StateProvider((ref) => false);
 
-  /// ステータスメッセージ
+  /// Status message
   final _statusMessageProvider = StateProvider((ref) => "");
 
   @override
@@ -31,7 +33,7 @@ class _FacePageState extends ConsumerState<FacePage> {
     });
   }
 
-  // check existence of apikey setting page
+  // check existence of face setting API
   Future<void> _checkStackchan() async {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
@@ -39,7 +41,9 @@ class _FacePageState extends ConsumerState<FacePage> {
       if (await Stackchan(widget.stackchanConfig.ipAddress).hasFaceApi()) {
         ref.read(_initializedProvider.notifier).state = true;
       } else {
-        ref.read(_statusMessageProvider.notifier).state = "設定できません。";
+        if (context.mounted) {
+          ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.unsupportedSettings;
+        }
       }
     } finally {
       ref.read(_updatingProvider.notifier).state = false;
@@ -79,7 +83,8 @@ class _FacePageState extends ConsumerState<FacePage> {
                     children: [
                       Card(
                         child: ListTile(
-                          title: Text("😐 おすまし", style: Theme.of(context).textTheme.titleLarge),
+                          title: Text("😐 ${AppLocalizations.of(context)!.neutralFace}",
+                              style: Theme.of(context).textTheme.titleLarge),
                           // subtitle: Text("Neutral Face", style: Theme.of(context).textTheme.titleMedium),
                           onTap: () {
                             _updateFace(0);
@@ -88,7 +93,8 @@ class _FacePageState extends ConsumerState<FacePage> {
                       ),
                       Card(
                         child: ListTile(
-                          title: Text("😘 たのしい", style: Theme.of(context).textTheme.titleLarge),
+                          title: Text("😘 ${AppLocalizations.of(context)!.neutralFace}",
+                              style: Theme.of(context).textTheme.titleLarge),
                           // subtitle: Text("Happy Face", style: Theme.of(context).textTheme.titleMedium),
                           onTap: () {
                             _updateFace(1);
@@ -97,7 +103,8 @@ class _FacePageState extends ConsumerState<FacePage> {
                       ),
                       Card(
                         child: ListTile(
-                          title: Text("😪 ねむい", style: Theme.of(context).textTheme.titleLarge),
+                          title: Text("😪 ${AppLocalizations.of(context)!.sleepyFace}",
+                              style: Theme.of(context).textTheme.titleLarge),
                           // subtitle: Text("Sleepy Face", style: Theme.of(context).textTheme.titleMedium),
                           onTap: () {
                             _updateFace(2);
@@ -106,7 +113,8 @@ class _FacePageState extends ConsumerState<FacePage> {
                       ),
                       Card(
                         child: ListTile(
-                          title: Text("😥 あやしい", style: Theme.of(context).textTheme.titleLarge),
+                          title: Text("😥 ${AppLocalizations.of(context)!.doubtFace}",
+                              style: Theme.of(context).textTheme.titleLarge),
                           // subtitle: Text("Doubt Face", style: Theme.of(context).textTheme.titleMedium),
                           onTap: () {
                             _updateFace(3);
@@ -115,7 +123,8 @@ class _FacePageState extends ConsumerState<FacePage> {
                       ),
                       Card(
                         child: ListTile(
-                          title: Text("😢 かなしい", style: Theme.of(context).textTheme.titleLarge),
+                          title: Text("😢 ${AppLocalizations.of(context)!.sadFace}",
+                              style: Theme.of(context).textTheme.titleLarge),
                           // subtitle: Text("Sad Face", style: Theme.of(context).textTheme.titleMedium),
                           onTap: () {
                             _updateFace(4);
@@ -124,7 +133,8 @@ class _FacePageState extends ConsumerState<FacePage> {
                       ),
                       Card(
                         child: ListTile(
-                          title: Text("😠 おこ", style: Theme.of(context).textTheme.titleLarge),
+                          title: Text("😠 ${AppLocalizations.of(context)!.angryFace}",
+                              style: Theme.of(context).textTheme.titleLarge),
                           // subtitle: Text("Angry Face", style: Theme.of(context).textTheme.titleMedium),
                           onTap: () {
                             _updateFace(5);

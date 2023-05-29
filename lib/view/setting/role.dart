@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../infrastructure/stackchan.dart';
@@ -14,13 +15,13 @@ class SettingRolePage extends ConsumerStatefulWidget {
 }
 
 class _SettingRolePageState extends ConsumerState<SettingRolePage> {
-  /// 初期化完了
+  /// Initialized flag
   final _initializedProvider = StateProvider((ref) => false);
 
-  /// 設定更新中
+  /// Updating flag
   final _updatingProvider = StateProvider((ref) => false);
 
-  /// ステータスメッセージ
+  /// Status message
   final _statusMessageProvider = StateProvider((ref) => "");
 
   /// Role input
@@ -42,7 +43,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
     super.dispose();
   }
 
-  // check existence of apikey setting page
+  // check existence of role setting API
   Future<void> _getRole() async {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
@@ -58,7 +59,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
       }
       ref.read(_initializedProvider.notifier).state = true;
     } catch (e) {
-      ref.read(_statusMessageProvider.notifier).state = "設定できません。";
+      ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.unsupportedSettings;
     } finally {
       ref.read(_updatingProvider.notifier).state = false;
     }
@@ -74,7 +75,9 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
         _roleTextAreas.map((roleTextArea) => roleTextArea.text.trim()).where((text) => text.isNotEmpty).toList();
     try {
       await Stackchan(widget.stackchanConfig.ipAddress).setRoles(roles);
-      ref.read(_statusMessageProvider.notifier).state = "設定しました。";
+      if (context.mounted) {
+        ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.applySettingsSuccess;
+      }
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
@@ -90,7 +93,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ロール設定"),
+        title: Text(AppLocalizations.of(context)!.roleSettings),
       ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -107,7 +110,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "ロール(役割)を設定することで、ｽﾀｯｸﾁｬﾝ の振る舞いを変更することができます。設定が多いと返答に時間がかかったり、失敗しやすくなります。",
+                          AppLocalizations.of(context)!.roleDescription,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         Padding(
@@ -120,9 +123,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                                       child: TextFormField(
                                         maxLines: null,
-                                        decoration: InputDecoration(
-                                          labelText: "ロール ${index + 1}",
-                                        ),
+                                        decoration: InputDecoration(labelText: AppLocalizations.of(context)!.role),
                                         controller: _roleTextAreas[index],
                                         style: Theme.of(context).textTheme.bodyLarge,
                                       ),
@@ -137,7 +138,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                                 _roleTextAreas.add(TextEditingController());
                               });
                             },
-                            child: const Text("追加"),
+                            child: Text(AppLocalizations.of(context)!.add),
                           ),
                         ),
                       ],
@@ -170,7 +171,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: (initialized && !updating) ? _updateRoles : null,
-                      child: const Text("設定"),
+                      child: Text(AppLocalizations.of(context)!.applySettings),
                     ),
                   ),
                 ],

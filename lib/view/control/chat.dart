@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -43,7 +44,7 @@ class ChatBubble extends StatelessWidget {
               ),
               onLongPress: () {
                 Clipboard.setData(ClipboardData(text: text));
-                Fluttertoast.showToast(msg: "Copied to clipboard");
+                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.copiedToClipboard);
               },
             ),
           ),
@@ -63,28 +64,28 @@ class ChatPage extends ConsumerStatefulWidget {
 }
 
 class _ChatPageState extends ConsumerState<ChatPage> {
-  /// メッセージ表示最大数
+  /// Max number of messages to show
   static const int maxMessages = 100;
 
-  /// メッセージリポジトリ
+  /// Message repository
   final _messageRepository = ChatRepository();
 
-  /// メッセージ入力
+  /// Message input
   final _textArea = TextEditingController();
 
-  /// 音声認識
+  /// Speech recognizer
   final SpeechToText _speechToText = SpeechToText();
 
-  /// 設定更新中
+  /// Updating flag
   final _updatingProvider = StateProvider((ref) => false);
 
-  /// 音声認識中
+  /// Listening flag
   final _listeningProvider = StateProvider((ref) => false);
 
-  /// 音声認識状態
+  /// Listening status
   final _listeningStatusProvider = StateProvider((ref) => "");
 
-  /// メッセージ履歴
+  /// Message history
   final _messagesProvider = StateProvider<List<ChatMessage>>((ref) => []);
 
   @override
@@ -118,7 +119,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     ref.read(_messagesProvider.notifier).state = List.from(messages);
   }
 
-  // 音声入力開始
   Future<void> _startListening() async {
     // Unfocus
     final FocusScopeNode currentScope = FocusScope.of(context);
@@ -132,20 +132,23 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
     if (available) {
       _speechToText.listen(onResult: _resultListener);
-      ref.read(_listeningStatusProvider.notifier).state = "音声入力中...";
+      if (context.mounted) {
+        ref.read(_listeningStatusProvider.notifier).state = AppLocalizations.of(context)!.listeningSpeech;
+      }
       ref.read(_listeningProvider.notifier).state = true;
     } else {
-      ref.read(_listeningStatusProvider.notifier).state = "音声入力が拒否されました。";
+      if (context.mounted) {
+        ref.read(_listeningStatusProvider.notifier).state = AppLocalizations.of(context)!.listeningSpeechRejected;
+      }
     }
   }
 
-  // 音声入力停止
   Future<void> _stopListening() async {
     await _speechToText.stop();
     ref.read(_listeningProvider.notifier).state = false;
   }
 
-  // 音声入力結果
+  /// Callback on listening result
   void _resultListener(SpeechRecognitionResult result) {
     debugPrint("resultListener: ${jsonEncode(result)}");
     if (ref.read(_listeningProvider)) {
@@ -157,14 +160,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
   }
 
-  // 音声入力エラー
+  /// Callback on listening error
   void _errorListener(SpeechRecognitionError error) {
     debugPrint("errorListener: ${jsonEncode(error)}");
     ref.read(_listeningStatusProvider.notifier).state = "${error.errorMsg} - ${error.permanent}";
     ref.read(_listeningProvider.notifier).state = false;
   }
 
-  // 音声入力状態
+  /// Callback on listening status
   void _statusListener(String status) {
     debugPrint("statusListener: $status");
     if (status == "done") {
@@ -174,7 +177,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
   }
 
-  // ｽﾀｯｸﾁｬﾝ API を呼ぶ
   Future<void> _callStackchan() async {
     await _stopListening();
     final voice = widget.stackchanConfig.config["voice"] as String?;

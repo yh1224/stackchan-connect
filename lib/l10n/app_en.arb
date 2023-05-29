@@ -1,0 +1,118 @@
+{
+  "@@locale": "en",
+  "appName": "Stack-chan CONNECT",
+  "stackchan": "Stack-chan",
+  "hello": "Hello, I'm Stack-chan.",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "confirmation": "Confirmation",
+  "add": "Add",
+  "delete": "Delete",
+  "copiedToClipboard": "Copied to clipboard",
+  "aboutThisApp": "About/Howto use this app",
+  "privacyPolicy": "Privacy policy",
+  "name": "Name",
+  "ipAddress": "IP address",
+  "checkConnectivity": "Check connection",
+  "wifiSsid": "Wi-Fi SSID",
+  "wifiPassphrase": "Wi-Fi Passphrase",
+  "inputNameForThisStackchan": "Input the name of this Stack-chan.",
+  "inputIpAddressForThisStackchan": "Input the IP address of this Stack-chan.",
+  "configureBySmartConfig": "Auto-configure by SmartConfig",
+  "connectedSuccessful": "Connected successful.",
+  "deleteThisStackchan": "Delete this Stack-chan from the list.",
+  "areYouSureToProceed": "Are you sure to proceed?",
+  "smartConfig": "SmartConfig",
+  "smartConfigDescription": "This will connect a Stack-chan that supports automatic configuration with SmartConfig to your Wi-Fi network. This smartphone must be connected to the 2.4GHz band Wi-Fi access point.",
+  "inputForSmartConfig": "Input the SSID and passphrase of the Wi-Fi access point and tap \"Start configuration\".",
+  "startSmartConfig": "Start configuration",
+  "runningSmartConfig": "Running SmartConfig...\nWait a moment.",
+  "smartConfigCompleted": "Connected: {ipAddress}",
+  "@smartConfigCompleted": {
+    "placeholders": {
+      "ipAddress": {
+        "type": "String"
+      }
+    }
+  },
+  "talk": "Talk",
+  "speech": "Speech",
+  "face": "Face",
+  "settings": "Settings",
+  "listeningSpeech": "Listening...",
+  "listeningSpeechRejected": "Listening rejected。",
+  "neutralFace": "Neutral face",
+  "happyFace": "Happy face",
+  "sleepyFace": "Sleepy face",
+  "doubtFace": "Doubt face",
+  "sadFace": "Sad face",
+  "angryFace": "Angry face",
+  "apiSettings": "API Settings",
+  "roleSettings": "Role Settings",
+  "voiceSettings": "Voice Settings",
+  "volumeSettings": "Volume Settings",
+  "apiSettingsDescription": "Configure API services.",
+  "roleSettingsDescription": "Configure character of Stack-chan.",
+  "voiceSettingsDescription": "Select the voice of Stack-chan.",
+  "volumeSettingsDescription": "Adjust volume.",
+  "unsupportedSettings": "Unable to apply settings.",
+  "applySettings": "Apply",
+  "applySettingsSuccess": "Applied successful.",
+  "openAi": "OpenAI",
+  "openAiApiDescriptionPrefix": "To talk with Stack-chan, issue API Key from",
+  "openAiApiDescriptionSuffix": "and set it.",
+  "openAiApiKey": "OpenAI API Key",
+  "openaiApiKeyIsValid": "OK: You can call OpenAI API by this API Key.",
+  "googleCloud": "Google Cloud",
+  "googleCloudApiDescriptionPrefix": "To input with your speech, issue API Key from",
+  "googleCloudApiDescriptionSuffix": "and set it.",
+  "googleCloudApiKey": "Google Cloud API Key",
+  "googleCloudApiKeyIsValidForStt": "OK: You can call Google Cloud Speech-to-Text API by this API Key.",
+  "voicetextApi": "VoiceText Web API",
+  "voicetextApiDescriptionPrefix": "Issue API Key from voice synthesis engine",
+  "voicetextApiDescriptionSuffix": "and set it. *New registration suspended currently.*",
+  "voicetextApiKey": "VoiceText API Key",
+  "voiceTextApiKeyIsValid": "OK: You can call VoiceText API by this API Key.",
+  "ttsQuestVoicevoxApi": "TTS QUEST VOICEVOX API",
+  "ttsQuestVoicevoxApiDescriptionPrefix": "Issue API Key from voice synthesis engine",
+  "ttsQuestVoicevoxApiDescriptionSuffix": "and set it.",
+  "ttsQuestVoicevoxApiKey": "TTS QUEST VOICEVOX API Key",
+  "ttsQuestVoicevoxApiKeyIsValid": "OK: You can call VOICEVOX API by this API Key. ({points} points remaining)",
+  "@ttsQuestVoicevoxApiKeyIsValid": {
+    "placeholders": {
+      "points": {
+        "type": "num"
+      }
+    }
+  },
+  "ttsQuestVoicevoxApiKeyIsInvalid": "NG: You cannot call VOICEVOX API by this API Key.",
+  "checkValidity": "Check validity",
+  "error401": "Authentication failed. API Key is invalid.",
+  "error403": "Insufficient permissions.",
+  "error429": "Exceeds quota. Check usage amount.",
+  "role": "Role",
+  "roleDescription": "By setting a role, you can change the character of Stack-chan. If there are many settings, it will take time to reply, and it will be easy to fail.",
+  "@manyRoles": {
+    "placeholders": {
+      "numberOfRoles": {
+        "type": "num"
+      },
+      "maxNumberOfRoles": {
+        "type": "num"
+      }
+    }
+  },
+  "voice": "Voice",
+  "voiceDescription": "Select the voice number. If your Stack-chan does not support voice selection, this settings won't work.",
+  "unspecified": "Unspecified",
+  "tryToListen": "Try to listen",
+  "volume": "Volume",
+  "updatedVolumeTo": "Updated volume to {volume}",
+  "@updatedVolumeTo": {
+    "placeholders": {
+      "volume": {
+        "type": "num"
+      }
+    }
+  }
+}

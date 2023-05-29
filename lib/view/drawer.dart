@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:url_launcher/link.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -12,7 +13,7 @@ class AppDrawer extends StatelessWidget {
           DrawerHeader(
             decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
             child: Text(
-              "ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ",
+              AppLocalizations.of(context)!.appName,
               style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
@@ -23,7 +24,7 @@ class AppDrawer extends StatelessWidget {
             target: LinkTarget.blank,
             builder: (BuildContext ctx, FollowLink? openLink) {
               return ListTile(
-                title: const Text("アプリについて／使い方"),
+                title: Text(AppLocalizations.of(context)!.aboutThisApp),
                 onTap: openLink,
               );
             },
@@ -33,7 +34,7 @@ class AppDrawer extends StatelessWidget {
             target: LinkTarget.blank,
             builder: (BuildContext ctx, FollowLink? openLink) {
               return ListTile(
-                title: const Text("プライバシーポリシー"),
+                title: Text(AppLocalizations.of(context)!.privacyPolicy),
                 onTap: openLink,
               );
             },

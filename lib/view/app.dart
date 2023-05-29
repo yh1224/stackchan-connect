@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:stackchan_connect/view/home.dart';
 
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
       create: (context) => MyAppState(),
       child: MaterialApp(
         debugShowCheckedModeBanner: kDebugMode,
-        title: "ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ",
+        title: "Stack-chan CONNECT",
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.teal),
@@ -39,6 +40,8 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: const AppHomePage(),
       ),
     );

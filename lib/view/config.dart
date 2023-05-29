@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../infrastructure/stackchan.dart';
@@ -20,10 +21,10 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
   /// ｽﾀｯｸﾁｬﾝ 設定リポジトリ
   final _stackchanRepository = StackchanRepository();
 
-  /// 設定更新中
+  /// Updating flag
   final _updatingProvider = StateProvider((ref) => false);
 
-  /// ステータスメッセージ
+  /// Status message
   final _statusMessageProvider = StateProvider((ref) => "");
 
   /// 名前入力
@@ -55,8 +56,9 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      await Stackchan(stackchanIpAddress).speech("接続できました");
-      ref.read(_statusMessageProvider.notifier).state = "接続できました";
+      final connectedSpeech = AppLocalizations.of(context)!.connectedSuccessful;
+      await Stackchan(stackchanIpAddress).speech(connectedSpeech);
+      ref.read(_statusMessageProvider.notifier).state = connectedSpeech;
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
@@ -96,7 +98,7 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
+        title: Text(AppLocalizations.of(context)!.appName),
       ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -114,40 +116,40 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: Text(
-                          "名前",
+                          AppLocalizations.of(context)!.name,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
                       Text(
-                        "この ｽﾀｯｸﾁｬﾝ に名前をつけてください。",
+                        AppLocalizations.of(context)!.inputNameForThisStackchan,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: TextField(
                           controller: _stackchanNameTextArea,
-                          decoration: const InputDecoration(
-                            hintText: "名前",
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context)!.name,
                           ),
                         ),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: Text(
-                          "IP アドレス",
+                          AppLocalizations.of(context)!.ipAddress,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
                       Text(
-                        "ｽﾀｯｸﾁｬﾝの IP アドレスを入力してください。",
+                        AppLocalizations.of(context)!.inputIpAddressForThisStackchan,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: TextField(
                           controller: _stackchanIpAddressTextArea,
-                          decoration: const InputDecoration(
-                            hintText: "IP アドレス",
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context)!.ipAddress,
                           ),
                         ),
                       ),
@@ -160,7 +162,7 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: _startSmartConfig,
-                                child: const Text("SmartConfig で自動設定"),
+                                child: Text(AppLocalizations.of(context)!.configureBySmartConfig),
                               ),
                             ),
                           );
@@ -179,7 +181,7 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                                   return ElevatedButton(
                                     onPressed:
                                         _stackchanIpAddressTextArea.text.trim().isEmpty || updating ? null : _test,
-                                    child: const Text("接続確認"),
+                                    child: Text(AppLocalizations.of(context)!.checkConnectivity),
                                   );
                                 },
                               ),
@@ -219,7 +221,7 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                       builder: (context, value, child) {
                         return ElevatedButton(
                           onPressed: _close,
-                          child: const Text("OK"),
+                          child: Text(AppLocalizations.of(context)!.ok),
                         );
                       },
                     ),
@@ -235,17 +237,18 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
-                                  title: const Text("確認"),
-                                  content: const Text("この ｽﾀｯｸﾁｬﾝ を一覧から削除します。本当によろしいですか?"),
+                                  title: Text(AppLocalizations.of(context)!.confirmation),
+                                  content: Text("${AppLocalizations.of(context)!.deleteThisStackchan}\n"
+                                      "${AppLocalizations.of(context)!.areYouSureToProceed}"),
                                   actions: [
                                     TextButton(
-                                      child: const Text("やめる"),
+                                      child: Text(AppLocalizations.of(context)!.cancel),
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },
                                     ),
                                     TextButton(
-                                      child: const Text("OK"),
+                                      child: Text(AppLocalizations.of(context)!.ok),
                                       onPressed: () {
                                         _stackchanRepository.remove(ref.watch(widget.stackchanConfigProvider));
                                         Navigator.of(context).pop();
@@ -260,7 +263,7 @@ class _StackchanConfigPageState extends ConsumerState<StackchanConfigPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
                           ),
-                          child: const Text("削除"),
+                          child: Text(AppLocalizations.of(context)!.delete),
                         );
                       },
                     ),

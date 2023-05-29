@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stackchan_connect/view/setting/menu.dart';
 
@@ -36,11 +37,27 @@ class _ControlPageState extends ConsumerState<ControlTabsPage> with TickerProvid
           title: Text(stackchanConfig.name),
           bottom: TabBar(
             controller: _tabController,
-            tabs: const [
-              Tab(icon: Icon(Icons.message), text: "会話", iconMargin: EdgeInsets.all(4.0)),
-              Tab(icon: Icon(Icons.volume_up), text: "セリフ", iconMargin: EdgeInsets.all(4.0)),
-              Tab(icon: Icon(Icons.face), text: "表情", iconMargin: EdgeInsets.all(4.0)),
-              Tab(icon: Icon(Icons.settings), text: "設定", iconMargin: EdgeInsets.all(4.0)),
+            tabs: [
+              Tab(
+                icon: const Icon(Icons.message),
+                text: AppLocalizations.of(context)!.talk,
+                iconMargin: const EdgeInsets.all(4.0),
+              ),
+              Tab(
+                icon: const Icon(Icons.volume_up),
+                text: AppLocalizations.of(context)!.speech,
+                iconMargin: const EdgeInsets.all(4.0),
+              ),
+              Tab(
+                icon: const Icon(Icons.face),
+                text: AppLocalizations.of(context)!.face,
+                iconMargin: const EdgeInsets.all(4.0),
+              ),
+              Tab(
+                icon: const Icon(Icons.settings),
+                text: AppLocalizations.of(context)!.settings,
+                iconMargin: const EdgeInsets.all(4.0),
+              ),
             ],
             labelStyle: Theme.of(context).textTheme.labelSmall,
             padding: const EdgeInsets.all(0),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../infrastructure/stackchan.dart';
@@ -14,13 +15,13 @@ class SettingVoicePage extends ConsumerStatefulWidget {
 }
 
 class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
-  /// テスト中
+  /// Updating flag
   final _updatingProvider = StateProvider((ref) => false);
 
-  /// ステータスメッセージ
+  /// Status message
   final _statusMessageProvider = StateProvider((ref) => "");
 
-  /// 声色設定値
+  /// Selecting voice number
   final _voiceProvider = StateProvider<String?>((ref) => null);
 
   @override
@@ -40,7 +41,7 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
       await Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress)
-          .speech("こんにちは。スタックチャンです。", voice: ref.read(_voiceProvider));
+          .speech(AppLocalizations.of(context)!.hello, voice: ref.read(_voiceProvider));
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
@@ -66,7 +67,7 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("声色設定"),
+        title: Text(AppLocalizations.of(context)!.voiceSettings),
       ),
       body: Column(
         children: [
@@ -80,22 +81,22 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Text(
-                        "声色",
+                        AppLocalizations.of(context)!.voice,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
                     Text(
-                      "声色の番号を選択してください。声色指定に対応していない場合、設定は無効です。",
+                      AppLocalizations.of(context)!.voiceDescription,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: DropdownButtonFormField<String?>(
                         isExpanded: true,
-                        items: const <DropdownMenuItem<String>>[
+                        items: <DropdownMenuItem<String>>[
                               DropdownMenuItem(
                                 value: null,
-                                child: Text("指定しない"),
+                                child: Text(AppLocalizations.of(context)!.unspecified),
                               ),
                             ] +
                             [for (var i = 1; i <= 60; i++) i].map((i) {
@@ -111,7 +112,7 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _test,
-                        child: const Text("聞いてみる"),
+                        child: Text(AppLocalizations.of(context)!.tryToListen),
                       ),
                     ),
                   ],
@@ -143,7 +144,7 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _close,
-                    child: const Text("OK"),
+                    child: Text(AppLocalizations.of(context)!.ok),
                   ),
                 ),
               ],

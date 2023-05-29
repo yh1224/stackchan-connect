@@ -1,5 +1,6 @@
 import 'package:esp_smartconfig/esp_smartconfig.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -15,23 +16,23 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
   /// SmartConfig Provisioner
   Provisioner? _provisioner;
 
-  /// ステータスメッセージ
+  /// Status message
   final _statusMessageProvider = StateProvider((ref) => "");
 
-  /// Provision 実行中
+  /// Provisioning flag
   final _provisioningProvider = StateProvider((ref) => false);
 
-  /// 接続中の SSID
+  /// SSID of connected Wi-Fi
   final _wifiSsidProvider = StateProvider<String?>((ref) => null);
 
-  /// 接続中の BSSID
+  /// BSSID of connected Wi-Fi
   final _wifiBssidProvider = StateProvider<String?>((ref) => null);
 
-  /// Wi-Fi パスワード入力
+  /// Wi-Fi passphrase input
   final _wifiPassphraseTextArea = TextEditingController();
   final _isWifiPassphraseObscureProvider = StateProvider((ref) => true);
 
-  /// IP アドレス取得結果
+  /// Provisioned IP address
   final _resultIpAddressProvider = StateProvider<String?>((ref) => null);
 
   @override
@@ -68,7 +69,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
 
   Future<void> _startProvision() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    ref.read(_statusMessageProvider.notifier).state = "設定をおこなっています...\n電源を入れてしばらくお待ち下さい。";
+    ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.runningSmartConfig;
     ref.read(_provisioningProvider.notifier).state = true;
     try {
       _provisioner = Provisioner.espTouch();
@@ -77,11 +78,12 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
         _provisioner?.stop();
         ref.read(_provisioningProvider.notifier).state = false;
         if (response.ipAddressText != null) {
-          ref.read(_statusMessageProvider.notifier).state = "${response.ipAddressText} が接続されました。";
+          ref.read(_statusMessageProvider.notifier).state =
+              AppLocalizations.of(context)!.smartConfigCompleted(response.ipAddressText!);
           ref.read(_resultIpAddressProvider.notifier).state = response.ipAddressText;
         }
       }, onError: (e) {
-        ref.read(_statusMessageProvider.notifier).state = "エラー\n${e.toString()}";
+        ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
       }, onDone: () {
         debugPrint("Done");
       });
@@ -91,7 +93,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
         password: _wifiPassphraseTextArea.text.trim(),
       ));
     } catch (e) {
-      ref.read(_statusMessageProvider.notifier).state = "処理が開始できませんでした。\n${e.toString()}";
+      ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
       ref.read(_provisioningProvider.notifier).state = false;
     }
   }
@@ -118,7 +120,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("SmartConfig"),
+        title: Text(AppLocalizations.of(context)!.smartConfig),
       ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -129,13 +131,13 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
             Expanded(
               child: SingleChildScrollView(
                 child: Container(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(16.0),
                   width: double.infinity,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "SmartConfig による自動設定に対応した ｽﾀｯｸﾁｬﾝ を Wi-Fi ネットワークに接続します。このスマートフォンが 2.4GHz 帯の Wi-Fi アクセスポイントに接続されている必要があります。",
+                      Text(
+                        AppLocalizations.of(context)!.smartConfigDescription,
                         textAlign: TextAlign.left,
                       ),
                       const SizedBox(height: 20.0),
@@ -148,7 +150,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Row(
                                     children: [
                                       Text(
@@ -168,7 +170,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: Row(
                                     children: [
                                       Text(
@@ -188,7 +190,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   child: TextFormField(
                                     obscureText: isWifiPassphraseObscure,
                                     readOnly: provisioning,
@@ -196,7 +198,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8.0),
                                       ),
-                                      labelText: "パスフレーズ",
+                                      labelText: AppLocalizations.of(context)!.wifiPassphrase,
                                       suffixIcon: IconButton(
                                         icon: Icon(isWifiPassphraseObscure ? Icons.visibility_off : Icons.visibility),
                                         onPressed: () {
@@ -214,8 +216,8 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                         ),
                       ),
                       const SizedBox(height: 20.0),
-                      const Text(
-                        "Wi-Fi アクセスポイントのパスフレーズを入力して、「設定開始」を押してください。",
+                      Text(
+                        AppLocalizations.of(context)!.inputForSmartConfig,
                         textAlign: TextAlign.left,
                       ),
                     ],
@@ -262,7 +264,9 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                             onPressed: (isWifiConnected && _wifiPassphraseTextArea.text.trim().isNotEmpty)
                                 ? (provisioning ? _stopProvision : _startProvision)
                                 : null,
-                            child: Text(provisioning ? "キャンセル" : "設定開始"),
+                            child: Text(provisioning
+                                ? AppLocalizations.of(context)!.cancel
+                                : AppLocalizations.of(context)!.startSmartConfig),
                           );
                         },
                       ),
@@ -274,7 +278,7 @@ class _SmartConfigPageState extends ConsumerState<SmartConfigPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _close,
-                        child: const Text("OK"),
+                        child: Text(AppLocalizations.of(context)!.ok),
                       ),
                     ),
                   )

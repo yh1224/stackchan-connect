@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,28 +23,28 @@ class SettingApiKeyPage extends ConsumerStatefulWidget {
 }
 
 class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
-  /// 初期化完了
+  /// Initialized flag
   final _initializedProvider = StateProvider((ref) => false);
 
-  /// 設定更新中
+  /// Updating flag
   final _updatingProvider = StateProvider((ref) => false);
 
-  /// ステータスメッセージ
+  /// Status message
   final _statusMessageProvider = StateProvider((ref) => "");
 
-  /// OpenAI API Key 入力
+  /// OpenAI API Key input
   final _openaiApiKeyTextArea = TextEditingController();
   final _openaiApiKeyIsObscureProvider = StateProvider((ref) => true);
 
-  /// Google Cloud API Key 入力
+  /// Google Cloud API Key input
   final _googleCloudApiKeyTextArea = TextEditingController();
   final _googleCloudApiKeyIsObscureProvider = StateProvider((ref) => true);
 
-  /// VoiceText API Key 入力
+  /// VoiceText API Key input
   final _voicetextApiKeyTextArea = TextEditingController();
   final _voicetextApiKeyIsObscureProvider = StateProvider((ref) => true);
 
-  /// Voicevox API Key 入力
+  /// Voicevox API Key input
   final _voicevoxApiKeyTextArea = TextEditingController();
   final _voicevoxApiKeyIsObscureProvider = StateProvider((ref) => true);
 
@@ -85,7 +86,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     await prefs.setString("voicevoxApiKey", _voicevoxApiKeyTextArea.text.trim());
   }
 
-  // check existence of apikey setting page
+  // check existence of apikey setting API
   Future<void> _checkStackchan() async {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
@@ -93,18 +94,20 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
       if (await Stackchan(widget.stackchanConfig.ipAddress).hasApiKeysApi()) {
         ref.read(_initializedProvider.notifier).state = true;
       } else {
-        ref.read(_statusMessageProvider.notifier).state = "設定できません。";
+        if (context.mounted) {
+          ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.unsupportedSettings;
+        }
       }
     } finally {
       ref.read(_updatingProvider.notifier).state = false;
     }
   }
 
-  void _showMessageForStatusCode(Response res) {
-    const Map<int, String> statusMessages = {
-      401: "認証に失敗しました。不正な API Key です。",
-      403: "アクセス権限がありません。",
-      429: "利用量が制限を超過している可能性があります。利用可能枠を確認してください。",
+  void _showMessageForStatusCode(BuildContext context, Response res) {
+    Map<int, String> statusMessages = {
+      401: AppLocalizations.of(context)!.error401,
+      403: AppLocalizations.of(context)!.error401,
+      429: AppLocalizations.of(context)!.error401,
     };
     var message = "${res.statusCode} ${res.reasonPhrase}";
     if (statusMessages[res.statusCode] != null) {
@@ -119,9 +122,11 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     try {
       final res = await OpenAIApi(apiKey: _openaiApiKeyTextArea.text.trim()).testChat("test");
       if (res.statusCode == 200) {
-        ref.read(_statusMessageProvider.notifier).state = "OpenAI API を使用できます。";
+        if (context.mounted) {
+          ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.openaiApiKeyIsValid;
+        }
       } else {
-        _showMessageForStatusCode(res);
+        if (context.mounted) _showMessageForStatusCode(context, res);
       }
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
@@ -136,9 +141,12 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     try {
       final res = await GoogleCloudApi(apiKey: _googleCloudApiKeyTextArea.text.trim()).getSpeechOperations();
       if (res.statusCode == 200) {
-        ref.read(_statusMessageProvider.notifier).state = "Google Cloud Speech-to-Text API を使用できます。";
+        if (context.mounted) {
+          ref.read(_statusMessageProvider.notifier).state =
+              AppLocalizations.of(context)!.googleCloudApiKeyIsValidForStt;
+        }
       } else {
-        _showMessageForStatusCode(res);
+        if (context.mounted) _showMessageForStatusCode(context, res);
       }
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
@@ -153,9 +161,11 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     try {
       final res = await VoiceTextApi(apiKey: _voicetextApiKeyTextArea.text.trim()).testTts("test");
       if (res.statusCode == 200) {
-        ref.read(_statusMessageProvider.notifier).state = "VoiceText API を使用できます。";
+        if (context.mounted) {
+          ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.voiceTextApiKeyIsValid;
+        }
       } else {
-        _showMessageForStatusCode(res);
+        if (context.mounted) _showMessageForStatusCode(context, res);
       }
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
@@ -170,9 +180,15 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     try {
       final result = await VoicevoxApi(apiKey: _voicevoxApiKeyTextArea.text.trim()).getKeyPoints();
       if (result != null && result > 0) {
-        ref.read(_statusMessageProvider.notifier).state = "VOICEVOX API を使用できます。(残: $result ポイント)";
+        if (context.mounted) {
+          ref.read(_statusMessageProvider.notifier).state =
+              AppLocalizations.of(context)!.ttsQuestVoicevoxApiKeyIsValid(result);
+        }
       } else {
-        ref.read(_statusMessageProvider.notifier).state = "VOICEVOX API を使用できません。";
+        if (context.mounted) {
+          ref.read(_statusMessageProvider.notifier).state =
+              AppLocalizations.of(context)!.ttsQuestVoicevoxApiKeyIsInvalid;
+        }
       }
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
@@ -194,7 +210,9 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     try {
       await Stackchan(widget.stackchanConfig.ipAddress).setApiKeys(
           openai: openaiApiKey, sttapikey: googleCloudApiKey, voicetext: voicetextApiKey, voicevox: voicevoxApiKey);
-      ref.read(_statusMessageProvider.notifier).state = "設定しました。";
+      if (context.mounted) {
+        ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.applySettingsSuccess;
+      }
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
@@ -214,7 +232,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("API 設定"),
+        title: Text(AppLocalizations.of(context)!.apiSettings),
       ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -233,7 +251,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
-                            "OpenAI",
+                            AppLocalizations.of(context)!.openAi,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
@@ -241,11 +259,11 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: "ｽﾀｯｸﾁｬﾝ と会話するために、",
+                                text: "${AppLocalizations.of(context)!.openAiApiDescriptionPrefix} ",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               TextSpan(
-                                text: "OpenAI",
+                                text: AppLocalizations.of(context)!.openAi,
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
@@ -254,7 +272,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                                   },
                               ),
                               TextSpan(
-                                text: " から ChatGPT を使用するための API Key を発行して、設定してください。",
+                                text: " ${AppLocalizations.of(context)!.openAiApiDescriptionSuffix}",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -265,7 +283,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           child: TextFormField(
                             obscureText: openaiApiKeyIsObscure,
                             decoration: InputDecoration(
-                              labelText: "OpenAI API Key",
+                              labelText: AppLocalizations.of(context)!.openAiApiKey,
                               suffixIcon: IconButton(
                                 icon: Icon(openaiApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {
@@ -281,14 +299,14 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _testOpenAIApi,
-                            child: const Text("有効性を確認"),
+                            child: Text(AppLocalizations.of(context)!.checkValidity),
                           ),
                         ),
                         const SizedBox(height: 20.0),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
-                            "Google Cloud API",
+                            AppLocalizations.of(context)!.googleCloud,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
@@ -296,11 +314,11 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: "音声による入力をおこなうには、",
+                                text: "${AppLocalizations.of(context)!.googleCloudApiDescriptionPrefix} ",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               TextSpan(
-                                text: "Google Cloud",
+                                text: AppLocalizations.of(context)!.googleCloud,
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
@@ -309,7 +327,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                                   },
                               ),
                               TextSpan(
-                                text: " から Text-to-Speech API を使用するための API Key を発行して、設定してください。",
+                                text: " ${AppLocalizations.of(context)!.googleCloudApiDescriptionSuffix}",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -320,7 +338,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           child: TextFormField(
                             obscureText: googleCloudApiKeyIsObscure,
                             decoration: InputDecoration(
-                              labelText: "Google Cloud API Key",
+                              labelText: AppLocalizations.of(context)!.googleCloudApiKey,
                               suffixIcon: IconButton(
                                 icon: Icon(googleCloudApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {
@@ -336,14 +354,14 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _testGoogleCloudApi,
-                            child: const Text("有効性を確認"),
+                            child: Text(AppLocalizations.of(context)!.checkValidity),
                           ),
                         ),
                         const SizedBox(height: 20.0),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
-                            "VoiceText",
+                            AppLocalizations.of(context)!.voicetextApi,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
@@ -351,11 +369,11 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: "音声合成エンジン ",
+                                text: "${AppLocalizations.of(context)!.voicetextApiDescriptionPrefix} ",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               TextSpan(
-                                text: "VoiceText Web API",
+                                text: AppLocalizations.of(context)!.voicetextApi,
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
@@ -364,11 +382,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                                   },
                               ),
                               TextSpan(
-                                text: " から API Key を発行して、設定してください。",
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              TextSpan(
-                                text: "★現在無料版の新規登録は停止しています。",
+                                text: " ${AppLocalizations.of(context)!.voicetextApiDescriptionSuffix}",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -379,7 +393,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           child: TextFormField(
                             obscureText: voicetextApiKeyIsObscure,
                             decoration: InputDecoration(
-                              labelText: "VoiceText API Key",
+                              labelText: AppLocalizations.of(context)!.voicetextApiKey,
                               suffixIcon: IconButton(
                                 icon: Icon(voicetextApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {
@@ -395,14 +409,14 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _testVoiceTextApi,
-                            child: const Text("有効性を確認"),
+                            child: Text(AppLocalizations.of(context)!.checkValidity),
                           ),
                         ),
                         const SizedBox(height: 20.0),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
-                            "WEB 版 VOICEVOX",
+                            AppLocalizations.of(context)!.ttsQuestVoicevoxApi,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
@@ -410,11 +424,11 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: "音声合成エンジン ",
+                                text: "${AppLocalizations.of(context)!.ttsQuestVoicevoxApiDescriptionPrefix} ",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               TextSpan(
-                                text: "WEB 版 VOICEVOX API",
+                                text: AppLocalizations.of(context)!.ttsQuestVoicevoxApi,
                                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
@@ -423,7 +437,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                                   },
                               ),
                               TextSpan(
-                                text: " から API Key を発行して、設定してください。",
+                                text: " ${AppLocalizations.of(context)!.ttsQuestVoicevoxApiDescriptionSuffix}",
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -434,7 +448,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           child: TextFormField(
                             obscureText: voicevoxApiKeyIsObscure,
                             decoration: InputDecoration(
-                              labelText: "WEB 版 VOICEVOX API Key",
+                              labelText: AppLocalizations.of(context)!.ttsQuestVoicevoxApiKey,
                               suffixIcon: IconButton(
                                 icon: Icon(voicevoxApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
                                 onPressed: () {
@@ -450,7 +464,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: _testVoicevoxApi,
-                            child: const Text("有効性を確認"),
+                            child: Text(AppLocalizations.of(context)!.checkValidity),
                           ),
                         ),
                       ],
@@ -483,7 +497,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: (initialized && !updating) ? _updateApiKeys : null,
-                      child: const Text("設定"),
+                      child: Text(AppLocalizations.of(context)!.applySettings),
                     ),
                   ),
                 ],

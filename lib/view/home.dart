@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,10 +16,10 @@ class AppHomePage extends ConsumerStatefulWidget {
 }
 
 class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderStateMixin {
-  /// ｽﾀｯｸﾁｬﾝ 設定リポジトリ
+  /// Stack-chan repository
   final _stackchanRepository = StackchanRepository();
 
-  /// ｽﾀｯｸﾁｬﾝ 設定
+  /// Stack-chan configurations
   final _stackchanConfigProviderListProvider = StateProvider<List<StateProvider<StackchanConfig>>>((ref) => []);
 
   @override
@@ -30,7 +31,7 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
     });
   }
 
-  // Preference から移行
+  // Migrate from Preferences to StackchanConfig
   Future<void> _migrate() async {
     final prefs = await SharedPreferences.getInstance();
     final stackchanIpAddress = prefs.getString("stackchanIpAddress") ?? "";
@@ -55,8 +56,8 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
   }
 
   Future<void> _newStackchanConfig({String ipAddress = "", Map<String, Object?> config = const {}}) async {
-    final stackchanConfig =
-        await _stackchanRepository.save(StackchanConfig(name: "ｽﾀｯｸﾁｬﾝ", ipAddress: ipAddress, config: config));
+    final stackchanConfig = await _stackchanRepository.save(StackchanConfig(
+        name: AppLocalizations.of(context)!.stackchan, ipAddress: ipAddress, config: config));
     final stackchanConfigProviderList = ref.read(_stackchanConfigProviderListProvider);
     stackchanConfigProviderList.add(StateProvider((ref) => stackchanConfig));
     ref.read(_stackchanConfigProviderListProvider.notifier).state = List.from(stackchanConfigProviderList);
@@ -68,13 +69,13 @@ class _AppHomePageState extends ConsumerState<AppHomePage> with TickerProviderSt
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ｽﾀｯｸﾁｬﾝ ｺﾝﾈｸﾄ"),
+        title: Text(AppLocalizations.of(context)!.appName),
         actions: [
           PopupMenuButton(
             itemBuilder: (BuildContext context) {
               return [
                 PopupMenuItem(
-                  child: const Text("追加"),
+                  child: Text(AppLocalizations.of(context)!.add),
                   onTap: () {
                     _newStackchanConfig();
                   },

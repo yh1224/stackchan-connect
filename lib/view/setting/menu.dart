@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../repository/stackchan.dart';
@@ -36,8 +37,11 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
               child: Column(
                 children: [
                   ListTile(
-                    title: Text("API 設定", style: Theme.of(context).textTheme.titleLarge),
-                    subtitle: const Text("外部 API を使用するための設定をします"),
+                    title: Text(
+                      AppLocalizations.of(context)!.apiSettings,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    subtitle: Text(AppLocalizations.of(context)!.apiSettingsDescription),
                     tileColor: Colors.white,
                     leading: const Icon(Icons.key),
                     onTap: () {
@@ -46,8 +50,11 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
                     },
                   ),
                   ListTile(
-                    title: Text("ChatGPT ロール設定", style: Theme.of(context).textTheme.titleLarge),
-                    subtitle: const Text("ｽﾀｯｸﾁｬﾝ のキャラクターを変更します"),
+                    title: Text(
+                      AppLocalizations.of(context)!.roleSettings,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    subtitle: Text(AppLocalizations.of(context)!.roleSettingsDescription),
                     tileColor: Colors.white,
                     leading: const Icon(Icons.person),
                     onTap: () {
@@ -56,8 +63,11 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
                     },
                   ),
                   ListTile(
-                    title: Text("音量設定", style: Theme.of(context).textTheme.titleLarge),
-                    subtitle: const Text("読み上げの音量を調整します"),
+                    title: Text(
+                      AppLocalizations.of(context)!.volumeSettings,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    subtitle: Text(AppLocalizations.of(context)!.volumeSettingsDescription),
                     tileColor: Colors.white,
                     leading: const Icon(Icons.volume_up),
                     onTap: () {
@@ -66,8 +76,11 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
                     },
                   ),
                   ListTile(
-                    title: Text("声色設定", style: Theme.of(context).textTheme.titleLarge),
-                    subtitle: const Text("読み上げの声色を選択します"),
+                    title: Text(
+                      AppLocalizations.of(context)!.voiceSettings,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    subtitle: Text(AppLocalizations.of(context)!.voiceSettingsDescription),
                     tileColor: Colors.white,
                     leading: const Icon(Icons.record_voice_over),
                     onTap: () {

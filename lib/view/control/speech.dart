@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../infrastructure/stackchan.dart';
@@ -16,25 +17,25 @@ class SpeechPage extends ConsumerStatefulWidget {
 }
 
 class _SpeechPageState extends ConsumerState<SpeechPage> {
-  /// メッセージ表示最大数
+  /// Max number of messages to show
   static const int maxMessages = 100;
 
-  /// メッセージリポジトリ
+  /// Message repository
   final _speechRepository = SpeechRepository();
 
-  /// メッセージ入力
+  /// Message input
   final _textArea = TextEditingController();
 
-  /// 設定更新中
+  /// Updating flag
   final _updatingProvider = StateProvider((ref) => false);
 
-  /// ステータスメッセージ
+  /// Status message
   final _statusMessageProvider = StateProvider((ref) => "");
 
-  /// メッセージ履歴
+  /// Message history
   final _messagesProvider = StateProvider<List<SpeechMessage>>((ref) => []);
 
-  /// タップ位置
+  /// Tapped position
   Offset? _tapPosition;
 
   @override
@@ -128,9 +129,9 @@ class _SpeechPageState extends ConsumerState<SpeechPage> {
                                     context: context,
                                     position: RelativeRect.fromLTRB(_tapPosition!.dx, _tapPosition!.dy, 0, 0),
                                     items: [
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: "remove",
-                                        child: Text("削除"),
+                                        child: Text(AppLocalizations.of(context)!.delete),
                                       ),
                                     ],
                                   );
