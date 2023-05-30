@@ -14,9 +14,9 @@ import '../../infrastructure/voicevox.dart';
 import '../../repository/stackchan.dart';
 
 class SettingApiKeyPage extends ConsumerStatefulWidget {
-  const SettingApiKeyPage(this.stackchanConfig, {super.key});
+  const SettingApiKeyPage(this.stackchanConfigProvider, {super.key});
 
-  final StackchanConfig stackchanConfig;
+  final StateProvider<StackchanConfig> stackchanConfigProvider;
 
   @override
   ConsumerState<SettingApiKeyPage> createState() => _SettingApiKeyPageState();
@@ -48,6 +48,12 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
   final _voicevoxApiKeyTextArea = TextEditingController();
   final _voicevoxApiKeyIsObscureProvider = StateProvider((ref) => true);
 
+  /// Selected service for STT
+  final _sttServiceProvider = StateProvider((ref) => "whisper");
+
+  /// Selected service for TTS
+  final _ttsServiceProvider = StateProvider((ref) => "googleTranslation");
+
   @override
   void initState() {
     super.initState();
@@ -76,6 +82,10 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     _googleCloudApiKeyTextArea.text = prefs.getString("googleCloudApiKey") ?? "";
     _voicetextApiKeyTextArea.text = prefs.getString("voicetextApiKey") ?? "";
     _voicevoxApiKeyTextArea.text = prefs.getString("voicevoxApiKey") ?? "";
+    ref.read(_sttServiceProvider.notifier).state =
+        (ref.read(widget.stackchanConfigProvider).config["sttService"] ?? "whisper") as String;
+    ref.read(_ttsServiceProvider.notifier).state =
+        (ref.read(widget.stackchanConfigProvider).config["ttsService"] ?? "googleTranslationTts") as String;
   }
 
   Future<void> _onUpdate() async {
@@ -91,7 +101,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      if (await Stackchan(widget.stackchanConfig.ipAddress).hasApiKeysApi()) {
+      if (await Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress).hasApiKeysApi()) {
         ref.read(_initializedProvider.notifier).state = true;
       } else {
         if (context.mounted) {
@@ -201,15 +211,27 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     if (ref.read(_updatingProvider)) return;
 
     FocusManager.instance.primaryFocus?.unfocus();
+    final sttService = ref.read(_sttServiceProvider);
+    final ttsService = ref.read(_ttsServiceProvider);
     final openaiApiKey = _openaiApiKeyTextArea.text.trim();
-    final googleCloudApiKey = _googleCloudApiKeyTextArea.text.trim();
-    final voicetextApiKey = _voicetextApiKeyTextArea.text.trim();
-    final voicevoxApiKey = _voicevoxApiKeyTextArea.text.trim();
+    String sttApiKey;
+    if (sttService == "googleCloudStt") {
+      sttApiKey = _googleCloudApiKeyTextArea.text.trim();
+    } else {
+      sttApiKey = openaiApiKey;
+    }
+    String voicetextApiKey = "";
+    String voicevoxApiKey = "";
+    if (ttsService == "voicetext") {
+      voicetextApiKey = _voicetextApiKeyTextArea.text.trim();
+    } else if (ttsService == "ttsQuestVoicevox") {
+      voicevoxApiKey = _voicevoxApiKeyTextArea.text.trim();
+    }
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      await Stackchan(widget.stackchanConfig.ipAddress).setApiKeys(
-          openai: openaiApiKey, sttapikey: googleCloudApiKey, voicetext: voicetextApiKey, voicevox: voicevoxApiKey);
+      await Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress)
+          .setApiKeys(openai: openaiApiKey, sttapikey: sttApiKey, voicetext: voicetextApiKey, voicevox: voicevoxApiKey);
       if (context.mounted) {
         ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.applySettingsSuccess;
       }
@@ -218,6 +240,10 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     } finally {
       ref.read(_updatingProvider.notifier).state = false;
     }
+    final stackchanConfig = ref.read(widget.stackchanConfigProvider);
+    final config = stackchanConfig.config;
+    config["sttService"] = ref.read(_sttServiceProvider);
+    config["ttsService"] = ref.read(_ttsServiceProvider);
   }
 
   @override
@@ -248,6 +274,68 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            AppLocalizations.of(context)!.sttService,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(AppLocalizations.of(context)!.sttServiceDescription),
+                        ),
+                        DropdownButtonFormField<String?>(
+                          isExpanded: true,
+                          items: [
+                            DropdownMenuItem(
+                              value: "whisper",
+                              child: Text(AppLocalizations.of(context)!.openAiWhisperApi),
+                            ),
+                            DropdownMenuItem(
+                              value: "googleCloudStt",
+                              child: Text(AppLocalizations.of(context)!.googleCloudSttApi),
+                            ),
+                          ],
+                          onChanged: (String? value) {
+                            ref.read(_sttServiceProvider.notifier).state = value!;
+                          },
+                          value: ref.watch(_sttServiceProvider),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(
+                            AppLocalizations.of(context)!.ttsService,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Text(AppLocalizations.of(context)!.ttsServiceDescription),
+                        ),
+                        DropdownButtonFormField<String?>(
+                          isExpanded: true,
+                          items: [
+                            DropdownMenuItem(
+                              value: "googleTranslationTts",
+                              child: Text(AppLocalizations.of(context)!.googleTranslationTtsApi),
+                            ),
+                            DropdownMenuItem(
+                              value: "voicetext",
+                              child: Text(AppLocalizations.of(context)!.voicetextApi),
+                            ),
+                            DropdownMenuItem(
+                              value: "ttsQuestVoicevox",
+                              child: Text(AppLocalizations.of(context)!.ttsQuestVoicevoxApi),
+                            ),
+                          ],
+                          onChanged: (String? value) {
+                            ref.read(_ttsServiceProvider.notifier).state = value!;
+                          },
+                          value: ref.watch(_ttsServiceProvider),
+                        ),
+                        const SizedBox(height: 20.0),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Text(
@@ -302,169 +390,195 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
                             child: Text(AppLocalizations.of(context)!.checkValidity),
                           ),
                         ),
-                        const SizedBox(height: 20.0),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            AppLocalizations.of(context)!.googleCloud,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ),
-                        RichText(
-                          text: TextSpan(
+                        Visibility(
+                          visible: ref.watch(_sttServiceProvider) == "googleCloudStt",
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextSpan(
-                                text: "${AppLocalizations.of(context)!.googleCloudApiDescriptionPrefix} ",
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              const SizedBox(height: 20.0),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.googleCloud,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
                               ),
-                              TextSpan(
-                                text: AppLocalizations.of(context)!.googleCloud,
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    launchUrl(Uri.parse("https://cloud.google.com"),
-                                        mode: LaunchMode.externalApplication);
-                                  },
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: "${AppLocalizations.of(context)!.googleCloudApiDescriptionPrefix} ",
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                    TextSpan(
+                                      text: AppLocalizations.of(context)!.googleCloud,
+                                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          launchUrl(Uri.parse("https://cloud.google.com"),
+                                              mode: LaunchMode.externalApplication);
+                                        },
+                                    ),
+                                    TextSpan(
+                                      text: " ${AppLocalizations.of(context)!.googleCloudApiDescriptionSuffix}",
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              TextSpan(
-                                text: " ${AppLocalizations.of(context)!.googleCloudApiDescriptionSuffix}",
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: TextFormField(
+                                  obscureText: googleCloudApiKeyIsObscure,
+                                  decoration: InputDecoration(
+                                    labelText: AppLocalizations.of(context)!.googleCloudApiKey,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(googleCloudApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
+                                      onPressed: () {
+                                        ref
+                                            .read(_googleCloudApiKeyIsObscureProvider.notifier)
+                                            .update((state) => !state);
+                                      },
+                                    ),
+                                  ),
+                                  controller: _googleCloudApiKeyTextArea,
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _testGoogleCloudApi,
+                                  child: Text(AppLocalizations.of(context)!.checkValidity),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            obscureText: googleCloudApiKeyIsObscure,
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(context)!.googleCloudApiKey,
-                              suffixIcon: IconButton(
-                                icon: Icon(googleCloudApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
-                                onPressed: () {
-                                  ref.read(_googleCloudApiKeyIsObscureProvider.notifier).update((state) => !state);
-                                },
-                              ),
-                            ),
-                            controller: _googleCloudApiKeyTextArea,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _testGoogleCloudApi,
-                            child: Text(AppLocalizations.of(context)!.checkValidity),
-                          ),
-                        ),
-                        const SizedBox(height: 20.0),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            AppLocalizations.of(context)!.voicetextApi,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ),
-                        RichText(
-                          text: TextSpan(
+                        Visibility(
+                          visible: ref.watch(_ttsServiceProvider) == "voicetext",
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextSpan(
-                                text: "${AppLocalizations.of(context)!.voicetextApiDescriptionPrefix} ",
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              const SizedBox(height: 20.0),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.voicetextApi,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
                               ),
-                              TextSpan(
-                                text: AppLocalizations.of(context)!.voicetextApi,
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    launchUrl(Uri.parse("https://cloud.voicetext.jp"),
-                                        mode: LaunchMode.externalApplication);
-                                  },
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: "${AppLocalizations.of(context)!.voicetextApiDescriptionPrefix} ",
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                    TextSpan(
+                                      text: AppLocalizations.of(context)!.voicetextApi,
+                                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          launchUrl(Uri.parse("https://cloud.voicetext.jp"),
+                                              mode: LaunchMode.externalApplication);
+                                        },
+                                    ),
+                                    TextSpan(
+                                      text: " ${AppLocalizations.of(context)!.voicetextApiDescriptionSuffix}",
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              TextSpan(
-                                text: " ${AppLocalizations.of(context)!.voicetextApiDescriptionSuffix}",
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: TextFormField(
+                                  obscureText: voicetextApiKeyIsObscure,
+                                  decoration: InputDecoration(
+                                    labelText: AppLocalizations.of(context)!.voicetextApiKey,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(voicetextApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
+                                      onPressed: () {
+                                        ref.read(_voicetextApiKeyIsObscureProvider.notifier).update((state) => !state);
+                                      },
+                                    ),
+                                  ),
+                                  controller: _voicetextApiKeyTextArea,
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _testVoiceTextApi,
+                                  child: Text(AppLocalizations.of(context)!.checkValidity),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            obscureText: voicetextApiKeyIsObscure,
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(context)!.voicetextApiKey,
-                              suffixIcon: IconButton(
-                                icon: Icon(voicetextApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
-                                onPressed: () {
-                                  ref.read(_voicetextApiKeyIsObscureProvider.notifier).update((state) => !state);
-                                },
-                              ),
-                            ),
-                            controller: _voicetextApiKeyTextArea,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _testVoiceTextApi,
-                            child: Text(AppLocalizations.of(context)!.checkValidity),
-                          ),
-                        ),
-                        const SizedBox(height: 20.0),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            AppLocalizations.of(context)!.ttsQuestVoicevoxApi,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ),
-                        RichText(
-                          text: TextSpan(
+                        Visibility(
+                          visible: ref.watch(_ttsServiceProvider) == "ttsQuestVoicevox",
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextSpan(
-                                text: "${AppLocalizations.of(context)!.ttsQuestVoicevoxApiDescriptionPrefix} ",
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              const SizedBox(height: 20.0),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Text(
+                                  AppLocalizations.of(context)!.ttsQuestVoicevoxApi,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
                               ),
-                              TextSpan(
-                                text: AppLocalizations.of(context)!.ttsQuestVoicevoxApi,
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    launchUrl(Uri.parse("https://voicevox.su-shiki.com/su-shikiapis/"),
-                                        mode: LaunchMode.externalApplication);
-                                  },
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: "${AppLocalizations.of(context)!.ttsQuestVoicevoxApiDescriptionPrefix} ",
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                    TextSpan(
+                                      text: AppLocalizations.of(context)!.ttsQuestVoicevoxApi,
+                                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.blue),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          launchUrl(Uri.parse("https://voicevox.su-shiki.com/su-shikiapis/"),
+                                              mode: LaunchMode.externalApplication);
+                                        },
+                                    ),
+                                    TextSpan(
+                                      text: " ${AppLocalizations.of(context)!.ttsQuestVoicevoxApiDescriptionSuffix}",
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              TextSpan(
-                                text: " ${AppLocalizations.of(context)!.ttsQuestVoicevoxApiDescriptionSuffix}",
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: TextFormField(
+                                  obscureText: voicevoxApiKeyIsObscure,
+                                  decoration: InputDecoration(
+                                    labelText: AppLocalizations.of(context)!.ttsQuestVoicevoxApiKey,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(voicevoxApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
+                                      onPressed: () {
+                                        ref.read(_voicevoxApiKeyIsObscureProvider.notifier).update((state) => !state);
+                                      },
+                                    ),
+                                  ),
+                                  controller: _voicevoxApiKeyTextArea,
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _testVoicevoxApi,
+                                  child: Text(AppLocalizations.of(context)!.checkValidity),
+                                ),
                               ),
                             ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: TextFormField(
-                            obscureText: voicevoxApiKeyIsObscure,
-                            decoration: InputDecoration(
-                              labelText: AppLocalizations.of(context)!.ttsQuestVoicevoxApiKey,
-                              suffixIcon: IconButton(
-                                icon: Icon(voicevoxApiKeyIsObscure ? Icons.visibility_off : Icons.visibility),
-                                onPressed: () {
-                                  ref.read(_voicevoxApiKeyIsObscureProvider.notifier).update((state) => !state);
-                                },
-                              ),
-                            ),
-                            controller: _voicevoxApiKeyTextArea,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _testVoicevoxApi,
-                            child: Text(AppLocalizations.of(context)!.checkValidity),
                           ),
                         ),
                       ],

@@ -45,8 +45,8 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
                     tileColor: Colors.white,
                     leading: const Icon(Icons.key),
                     onTap: () {
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (context) => SettingApiKeyPage(stackchanConfig)));
+                      Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => SettingApiKeyPage(widget.stackchanConfigProvider)));
                     },
                   ),
                   ListTile(
