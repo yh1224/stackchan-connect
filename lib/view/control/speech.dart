@@ -17,6 +17,9 @@ class SpeechPage extends ConsumerStatefulWidget {
 }
 
 class _SpeechPageState extends ConsumerState<SpeechPage> {
+  /// System language code
+  late String _languageCode;
+
   /// Max number of messages to show
   static const int maxMessages = 100;
 
@@ -81,7 +84,7 @@ class _SpeechPageState extends ConsumerState<SpeechPage> {
     ref.read(_updatingProvider.notifier).state = true;
     try {
       final stackchan = Stackchan(widget.stackchanConfig.ipAddress);
-      await stackchan.speech(message, voice: voice);
+      await stackchan.speech(message, voice: voice, lang: _languageCode);
     } catch (e) {
       ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
     } finally {
@@ -96,6 +99,8 @@ class _SpeechPageState extends ConsumerState<SpeechPage> {
 
   @override
   Widget build(BuildContext context) {
+    _languageCode = Localizations.localeOf(context).languageCode;
+
     _textArea.selection = TextSelection.fromPosition(
       TextPosition(offset: _textArea.text.length),
     );

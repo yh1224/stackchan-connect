@@ -143,10 +143,13 @@ class Stackchan extends StackchanInterface {
   }
 
   @override
-  Future<String> speech(String say, {String? voice}) async {
+  Future<String> speech(String say, {String? voice, String? lang}) async {
     final params = {"say": say};
     if (voice != null) {
       params["voice"] = voice;
+    }
+    if (lang != null) {
+      params["lang"] = lang;
     }
     final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/speech"), body: params);
     debugPrint("POST /speech ${jsonEncode(params)} : ${res.statusCode}");
@@ -157,10 +160,13 @@ class Stackchan extends StackchanInterface {
   }
 
   @override
-  Future<String> chat(String text, {String? voice}) async {
+  Future<String> chat(String text, {String? voice, String? lang}) async {
     final params = {"text": text};
     if (voice != null) {
       params["voice"] = voice;
+    }
+    if (lang != null) {
+      params["lang"] = lang;
     }
     final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/chat"), body: params);
     debugPrint("POST /chat ${jsonEncode(params)} : ${res.statusCode}");

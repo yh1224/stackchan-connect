@@ -64,6 +64,9 @@ class ChatPage extends ConsumerStatefulWidget {
 }
 
 class _ChatPageState extends ConsumerState<ChatPage> {
+  /// System language code
+  late String _languageCode;
+
   /// Max number of messages to show
   static const int maxMessages = 100;
 
@@ -186,7 +189,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ref.read(_updatingProvider.notifier).state = true;
       final stackchan = Stackchan(widget.stackchanConfig.ipAddress);
       _appendMessage(ChatMessage.kindRequest, request);
-      final reply = await stackchan.chat(request, voice: voice);
+      final reply = await stackchan.chat(request, voice: voice, lang: _languageCode);
       _appendMessage(ChatMessage.kindReply, reply);
     } catch (e) {
       _appendMessage(ChatMessage.kindError, "Error: ${e.toString()}");
@@ -197,6 +200,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    _languageCode = Localizations.localeOf(context).languageCode;
+
     _textArea.selection = TextSelection.fromPosition(
       TextPosition(offset: _textArea.text.length),
     );
