@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../repository/stackchan.dart';
 import 'apikey.dart';
@@ -86,6 +87,18 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
                     onTap: () {
                       Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => SettingVoicePage(widget.stackchanConfigProvider)));
+                    },
+                  ),
+                  ListTile(
+                    title: Text(
+                      AppLocalizations.of(context)!.openStackchan,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    subtitle: Text(AppLocalizations.of(context)!.openStackchanDescription),
+                    tileColor: Colors.white,
+                    leading: const Icon(Icons.open_in_browser),
+                    onTap: () {
+                      launchUrl(Uri.http(stackchanConfig.ipAddress), mode: LaunchMode.externalApplication);
                     },
                   ),
                 ],
