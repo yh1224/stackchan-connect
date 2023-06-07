@@ -9,12 +9,12 @@ class VoicevoxApi {
   static const String endpoint = "https://api.tts.quest/v3";
 
   /// VOICEVOX API Key
-  final String _apiKey;
+  final String? _apiKey;
 
   /// HTTP Client
   final RetryClient _httpClient;
 
-  VoicevoxApi({required String apiKey})
+  VoicevoxApi({String? apiKey})
       : _apiKey = apiKey,
         _httpClient = RetryClient(Client(), retries: 2, whenError: (dynamic error, StackTrace stackTrace) {
           debugPrint(error.toString());
@@ -29,6 +29,19 @@ class VoicevoxApi {
       final result = jsonDecode(res.body);
       if (result["isApiKeyValid"]) {
         return result["points"];
+      }
+    }
+    return null;
+  }
+
+  Future<List<String>?> getSpeakers() async {
+    const url = "$endpoint/voicevox/speakers_array";
+    final res = await _httpClient.get(Uri.parse(url).replace(queryParameters: {"key": _apiKey}));
+    debugPrint("GET $url : ${res.statusCode}");
+    if (res.statusCode == 200) {
+      final result = jsonDecode(res.body);
+      if (result["success"] == true && result["speakers"] != null) {
+        return List<String>.from(result["speakers"]);
       }
     }
     return null;
