@@ -115,6 +115,8 @@
   "voiceDescription": "Select the voice number. If your Stack-chan does not support voice selection, this settings won't work.",
   "unspecified": "Unspecified",
   "tryToListen": "Try to listen",
+  "updateVoice": "Set as default voice",
+  "updatedVoice": "Updated default voice",
   "volume": "Volume",
   "updatedVolumeTo": "Updated volume to {volume}",
   "@updatedVolumeTo": {

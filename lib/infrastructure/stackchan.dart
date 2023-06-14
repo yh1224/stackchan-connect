@@ -189,8 +189,11 @@ class Stackchan extends StackchanInterface {
   }
 
   @override
-  Future<void> setting({String? volume}) async {
+  Future<void> setting({String? voice, String? volume}) async {
     final params = {};
+    if (voice != null) {
+      params["voice"] = voice;
+    }
     if (volume != null) {
       params["volume"] = volume;
     }

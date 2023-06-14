@@ -89,6 +89,32 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
     }
   }
 
+  Future<void> _updateVoice() async {
+    if (ref.read(_updatingProvider)) return;
+
+    ref.read(_updatingProvider.notifier).state = true;
+    ref.read(_statusMessageProvider.notifier).state = "";
+    try {
+      final updatedSpeech = AppLocalizations.of(context)!.updatedVoice;
+      final voice = ref.read(_voiceProvider);
+      final stackchan = Stackchan(ref.read(widget.stackchanConfigProvider).ipAddress);
+      await stackchan.setting(voice: voice);
+      await stackchan.speech(updatedSpeech, voice: voice);
+      if (context.mounted) {
+        ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.applySettingsSuccess;
+      }
+    } catch (e) {
+      ref.read(_statusMessageProvider.notifier).state = "Error: ${e.toString()}";
+    } finally {
+      ref.read(_updatingProvider.notifier).state = false;
+    }
+
+    final stackchanConfig = ref.read(widget.stackchanConfigProvider);
+    final config = stackchanConfig.config;
+    config["voice"] = ref.read(_voiceProvider);
+    ref.read(widget.stackchanConfigProvider.notifier).state = stackchanConfig.copyWith(config: config);
+  }
+
   Future<void> _close() async {
     final stackchanConfig = ref.read(widget.stackchanConfigProvider);
     final config = stackchanConfig.config;
@@ -182,6 +208,13 @@ class _SettingVoicePageState extends ConsumerState<SettingVoicePage> {
                   child: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8.0),
                     child: LinearProgressIndicator(),
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _updateVoice,
+                    child: Text(AppLocalizations.of(context)!.updateVoice),
                   ),
                 ),
                 SizedBox(
