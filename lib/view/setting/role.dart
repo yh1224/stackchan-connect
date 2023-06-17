@@ -25,7 +25,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
   final _statusMessageProvider = StateProvider((ref) => "");
 
   /// Role input
-  final _roleTextAreas = <TextEditingController>[];
+  final _roleTextArea = TextEditingController();
 
   @override
   void initState() {
@@ -37,9 +37,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
 
   @override
   void dispose() {
-    for (var roleTextArea in _roleTextAreas) {
-      roleTextArea.dispose();
-    }
+    _roleTextArea.dispose();
     super.dispose();
   }
 
@@ -48,14 +46,9 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
     try {
-      final roles = await Stackchan(widget.stackchanConfig.ipAddress).getRoles();
-      for (var i = 0; i < roles.length; i++) {
-        final textEditingController = TextEditingController();
-        textEditingController.text = roles[i];
-        _roleTextAreas.add(textEditingController);
-      }
-      if (roles.isEmpty) {
-        _roleTextAreas.add(TextEditingController());
+      final role = await Stackchan(widget.stackchanConfig.ipAddress).getRole();
+      if (role != null) {
+        _roleTextArea.text = role;
       }
       ref.read(_initializedProvider.notifier).state = true;
     } catch (e) {
@@ -65,16 +58,15 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
     }
   }
 
-  Future<void> _updateRoles() async {
+  Future<void> _updateRole() async {
     if (ref.read(_updatingProvider)) return;
 
     FocusManager.instance.primaryFocus?.unfocus();
     ref.read(_updatingProvider.notifier).state = true;
     ref.read(_statusMessageProvider.notifier).state = "";
-    final roles =
-        _roleTextAreas.map((roleTextArea) => roleTextArea.text.trim()).where((text) => text.isNotEmpty).toList();
+    final role = _roleTextArea.text.trim();
     try {
-      await Stackchan(widget.stackchanConfig.ipAddress).setRoles(roles);
+      await Stackchan(widget.stackchanConfig.ipAddress).setRole(role);
       if (context.mounted) {
         ref.read(_statusMessageProvider.notifier).state = AppLocalizations.of(context)!.applySettingsSuccess;
       }
@@ -115,30 +107,11 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: List.generate(
-                                _roleTextAreas.length,
-                                (int index) => Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                      child: TextFormField(
-                                        maxLines: null,
-                                        decoration: InputDecoration(labelText: AppLocalizations.of(context)!.role),
-                                        controller: _roleTextAreas[index],
-                                        style: Theme.of(context).textTheme.bodyLarge,
-                                      ),
-                                    )),
-                          ),
-                        ),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _roleTextAreas.add(TextEditingController());
-                              });
-                            },
-                            child: Text(AppLocalizations.of(context)!.add),
+                          child: TextFormField(
+                            maxLines: null,
+                            decoration: InputDecoration(labelText: AppLocalizations.of(context)!.role),
+                            controller: _roleTextArea,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
                       ],
@@ -170,7 +143,7 @@ class _SettingRolePageState extends ConsumerState<SettingRolePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: (initialized && !updating) ? _updateRoles : null,
+                      onPressed: (initialized && !updating) ? _updateRole : null,
                       child: Text(AppLocalizations.of(context)!.applySettings),
                     ),
                   ),

@@ -10,7 +10,7 @@ class Stackchan extends StackchanInterface {
   String? _voicetextApiKey;
 
   /// ロール設定
-  final List<String> _roles = [];
+  String? _role;
 
   @override
   Future<bool> hasApiKeysApi() async => true;
@@ -31,17 +31,16 @@ class Stackchan extends StackchanInterface {
   }
 
   @override
-  Future<List<String>> getRoles() async => _roles;
+  Future<String?> getRole() async => _role;
 
   @override
-  Future<void> setRoles(List<String> roles) async {
-    this._roles.clear();
-    this._roles.addAll(roles);
+  Future<void> setRole(String? role) async {
+    _role = role;
   }
 
   @override
-  Future<void> deleteRoles() async {
-    _roles.clear();
+  Future<void> deleteRole() async {
+    _role = null;
   }
 
   @override
@@ -57,7 +56,7 @@ class Stackchan extends StackchanInterface {
     if (_openaiApiKey == null) {
       throw UnexpectedResponseError(401);
     }
-    return await OpenAIApi(apiKey: _openaiApiKey!).chat(text, _roles);
+    return await OpenAIApi(apiKey: _openaiApiKey!).chat(text, _role);
   }
 
   @override

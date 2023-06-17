@@ -74,7 +74,7 @@ class Stackchan extends StackchanInterface {
   }
 
   @override
-  Future<List<String>> getRoles() async {
+  Future<String?> getRole() async {
     final res = await _httpClient.get(Uri.http(_stackchanIpAddress, "/role_get"));
     debugPrint("GET /role_get : ${res.statusCode}");
     if (res.statusCode != 200) {
@@ -89,20 +89,20 @@ class Stackchan extends StackchanInterface {
     }
     if (resultBody == "null") {
       // handle "null" response
-      return [];
+      return null;
     }
     try {
       final json = jsonDecode(resultBody);
-      List result = [];
+      String? result;
       if (json["roles"] != null) {
-        result = json["roles"].toList();
+        result = json["roles"].join("\n");
       } else if (json["messages"] != null) {
         result = json["messages"]
             .where((message) => message["role"] == "system")
             .map((message) => message["content"])
-            .toList();
+            .join("\n");
       }
-      return List<String>.from(result);
+      return result;
     } catch (e) {
       debugPrint(e.toString());
       throw UnexpectedResponseError(res.statusCode, message: e.toString());
@@ -110,10 +110,10 @@ class Stackchan extends StackchanInterface {
   }
 
   @override
-  Future<void> setRoles(List<String> roles) async {
-    await getRoles(); // 連続で POST すると正常にクリアされないため、一度 GET してから POST する
-    await deleteRoles();
-    for (var role in roles) {
+  Future<void> setRole(String? role) async {
+    await getRole(); // 連続で POST すると正常にクリアされないため、一度 GET してから POST する
+    await deleteRole();
+    if (role != null && role.isNotEmpty) {
       final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/role_set"), body: role);
       debugPrint("POST /role_set $role : ${res.statusCode}");
       if (res.statusCode != 200) {
@@ -123,7 +123,7 @@ class Stackchan extends StackchanInterface {
   }
 
   @override
-  Future<void> deleteRoles() async {
+  Future<void> deleteRole() async {
     final res = await _httpClient.post(Uri.http(_stackchanIpAddress, "/role_set"));
     debugPrint("POST /role_set : ${res.statusCode}");
     if (res.statusCode != 200) {

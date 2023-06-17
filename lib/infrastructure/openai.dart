@@ -38,10 +38,10 @@ class OpenAIApi {
     return res;
   }
 
-  Future<String> chat(String content, List<String> roles) async {
+  Future<String> chat(String content, String? role) async {
     const url = "$endpoint/chat/completions";
     final List<Map<String, String>> messages = [];
-    for (var role in roles) {
+    if (role != null && role.isNotEmpty) {
       messages.add({"role": "system", "content": role});
     }
     messages.add({"role": "user", "content": content});

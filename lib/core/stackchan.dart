@@ -24,14 +24,14 @@ abstract class StackchanInterface {
   /// Set API Keys
   Future<void> setApiKeys({String? openai, String? voicetext});
 
-  /// Get roles
-  Future<List<String>> getRoles();
+  /// Get role
+  Future<String?> getRole();
 
-  /// Set roles
-  Future<void> setRoles(List<String> roles);
+  /// Set role
+  Future<void> setRole(String role);
 
-  /// Delete roles
-  Future<void> deleteRoles();
+  /// Delete role
+  Future<void> deleteRole();
 
   /// Speech API
   Future<String> speech(String say, {String? voice});

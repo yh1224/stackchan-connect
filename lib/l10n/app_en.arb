@@ -100,7 +100,7 @@
   "error403": "Insufficient permissions.",
   "error429": "Exceeds quota. Check usage amount.",
   "role": "Role",
-  "roleDescription": "By setting a role, you can change the character of Stack-chan. If there are many settings, it will take time to reply, and it will be easy to fail.",
+  "roleDescription": "By setting a role, you can change the character of Stack-chan.",
   "@manyRoles": {
     "placeholders": {
       "numberOfRoles": {
