@@ -93,7 +93,7 @@ class _FacePageState extends ConsumerState<FacePage> {
                       ),
                       Card(
                         child: ListTile(
-                          title: Text("😘 ${AppLocalizations.of(context)!.neutralFace}",
+                          title: Text("😘 ${AppLocalizations.of(context)!.happyFace}",
                               style: Theme.of(context).textTheme.titleLarge),
                           // subtitle: Text("Happy Face", style: Theme.of(context).textTheme.titleMedium),
                           onTap: () {
