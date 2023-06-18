@@ -244,6 +244,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
     final config = stackchanConfig.config;
     config["sttService"] = ref.read(_sttServiceProvider);
     config["ttsService"] = ref.read(_ttsServiceProvider);
+    ref.read(widget.stackchanConfigProvider.notifier).state = stackchanConfig.copyWith(config: config);
   }
 
   @override

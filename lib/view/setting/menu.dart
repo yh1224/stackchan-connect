@@ -24,6 +24,7 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
   @override
   Widget build(BuildContext context) {
     final stackchanConfig = ref.watch(widget.stackchanConfigProvider);
+    final ttsService = stackchanConfig.config["ttsService"];
 
     ref.listen(widget.stackchanConfigProvider, (_, next) {
       _stackchanRepository.save(next);
@@ -76,18 +77,21 @@ class _SettingMenuPageState extends ConsumerState<SettingMenuPage> {
                           builder: (context) => SettingStackchanPage(widget.stackchanConfigProvider)));
                     },
                   ),
-                  ListTile(
-                    title: Text(
-                      AppLocalizations.of(context)!.voiceSettings,
-                      style: Theme.of(context).textTheme.titleLarge,
+                  Visibility(
+                    visible: ttsService == "voicetext" || ttsService == "ttsQuestVoicevox",
+                    child: ListTile(
+                      title: Text(
+                        AppLocalizations.of(context)!.voiceSettings,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      subtitle: Text(AppLocalizations.of(context)!.voiceSettingsDescription),
+                      tileColor: Colors.white,
+                      leading: const Icon(Icons.record_voice_over),
+                      onTap: () {
+                        Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => SettingVoicePage(widget.stackchanConfigProvider)));
+                      },
                     ),
-                    subtitle: Text(AppLocalizations.of(context)!.voiceSettingsDescription),
-                    tileColor: Colors.white,
-                    leading: const Icon(Icons.record_voice_over),
-                    onTap: () {
-                      Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => SettingVoicePage(widget.stackchanConfigProvider)));
-                    },
                   ),
                   ListTile(
                     title: Text(
