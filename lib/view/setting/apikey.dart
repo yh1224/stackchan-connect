@@ -52,7 +52,7 @@ class _SettingApiKeyPageState extends ConsumerState<SettingApiKeyPage> {
   final _sttServiceProvider = StateProvider((ref) => "whisper");
 
   /// Selected service for TTS
-  final _ttsServiceProvider = StateProvider((ref) => "googleTranslation");
+  final _ttsServiceProvider = StateProvider((ref) => "googleTranslationTts");
 
   @override
   void initState() {
